@@ -105,6 +105,4 @@ SafeRoad is built in pure Java and demonstrates clean object-oriented design pri
 
 ---
 
-## 👥 Contributors
-- **Project Lead & Developer:** Shaun
-- **Domain:** Smart Governance, Urban Mobility, & Road Safety Analytics
+
