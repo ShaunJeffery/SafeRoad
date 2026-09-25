@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeRoad iRAD - Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-headline { font-family: 'Noto Serif', serif; }
+    .font-label { font-family: 'Public Sans', sans-serif; }
+    .input-glass {
+      background-color: #f1f5f9;
+      border: 1px solid transparent;
+      transition: all 0.3s ease;
+    }
+    .input-glass:focus {
+      outline: none;
+      border-color: #cbd5e1;
+      background-color: #fff;
+    }
+    .input-select {
+      background-color: #e2e8f0;
+    }
+    .ms {
+      font-family: 'Material Symbols Outlined';
+      font-weight: 400;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      display: inline-block;
+      font-variation-settings: 'FILL' 0, 'wght' 400;
+    }
+    .ms-fill {
+      font-variation-settings: 'FILL' 1, 'wght' 400;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900 relative">
+
+  <!-- Background SVG Graphics & Grid -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none z-0 select-none opacity-40">
+    <svg class="absolute top-0 left-0 w-full h-full" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M-100 200C200 150 400 400 700 350C1000 300 1200 500 1540 450" stroke="currentColor" stroke-width="2" class="text-blue-200" stroke-dasharray="12 12"></path>
+      <path d="M-100 240C200 190 400 440 700 390C1000 340 1200 540 1540 490" stroke="currentColor" stroke-width="2" class="text-blue-200" stroke-dasharray="12 12"></path>
+    </svg>
+    <div class="absolute inset-0" style="background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px); background-size: 40px 40px;"></div>
+    <div class="absolute top-1/4 -left-20 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-50"></div>
+    <div class="absolute bottom-1/4 -right-20 w-96 h-96 bg-orange-100 rounded-full blur-3xl opacity-30"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="w-full flex justify-between items-center px-12 py-5 sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+    <div class="w-full max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center shadow-md">
+          <span class="ms ms-fill text-white text-2xl">shield</span>
+        </div>
+        <span class="font-headline text-2xl font-bold text-slate-800">SafeRoad iRAD</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2 text-slate-500 hidden md:flex font-label text-sm font-semibold">
+          <span class="ms text-blue-500 text-lg">call</span>
+          <span>Helpline: 1033</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Split -->
+  <main class="flex-grow flex flex-col lg:flex-row items-center justify-center p-8 gap-12 z-10 w-full max-w-6xl mx-auto my-auto">
+    <!-- Left Panel: Empowering Safety Bento Grid -->
+    <div class="w-full lg:w-[55%] flex flex-col gap-8 hidden md:flex">
+      <div>
+        <h1 class="font-headline text-4xl leading-tight font-bold text-slate-900 mb-3">Empowering Safety</h1>
+        <p class="text-slate-600 max-w-xl text-base leading-relaxed">
+          A centralized platform for unified data collection, analysis, and management to enhance road safety across all departments.
+        </p>
+      </div>
+
+      <!-- Bento Grid of Departments -->
+      <div class="grid grid-cols-2 gap-3.5">
+        <!-- Police -->
+        <div class="bg-white p-4 rounded-2xl flex flex-col items-start gap-2.5 hover:shadow-md transition-all border border-slate-200 shadow-sm cursor-pointer" onclick="selectDept('police')">
+          <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+            <span class="ms text-blue-900 text-lg">local_police</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 mb-0.5 text-xs">Police Department</h3>
+            <p class="text-slate-500 text-[11px] leading-tight">Accident FIRs, challans & signal junction overrides.</p>
+          </div>
+        </div>
+        <!-- Transport -->
+        <div class="bg-white p-4 rounded-2xl flex flex-col items-start gap-2.5 hover:shadow-md transition-all border border-slate-200 shadow-sm cursor-pointer" onclick="selectDept('transport')">
+          <div class="w-9 h-9 rounded-xl bg-sky-50 flex items-center justify-center">
+            <span class="ms text-sky-600 text-lg">directions_car</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 mb-0.5 text-xs">Transport Dept (RTO)</h3>
+            <p class="text-slate-500 text-[11px] leading-tight">RC records, fitness audits & driver demerit points.</p>
+          </div>
+        </div>
+        <!-- Health / EMS -->
+        <div class="bg-white p-4 rounded-2xl flex flex-col items-start gap-2.5 hover:shadow-md transition-all border border-slate-200 shadow-sm cursor-pointer" onclick="selectDept('health')">
+          <div class="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center">
+            <span class="ms text-rose-600 text-lg">medical_services</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 mb-0.5 text-xs">Health Dept (EMS)</h3>
+            <p class="text-slate-500 text-[11px] leading-tight">Trauma registry, golden hour & green corridors.</p>
+          </div>
+        </div>
+        <!-- Insurance -->
+        <div class="bg-white p-4 rounded-2xl flex flex-col items-start gap-2.5 hover:shadow-md transition-all border border-slate-200 shadow-sm cursor-pointer" onclick="selectDept('insurance')">
+          <div class="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center">
+            <span class="ms text-purple-600 text-lg">assured_workload</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 mb-0.5 text-xs">Insurance Agency</h3>
+            <p class="text-slate-500 text-[11px] leading-tight">MACT claims tribunal & digital FIR verification.</p>
+          </div>
+        </div>
+        <!-- Citizen / Public -->
+        <div class="bg-white p-4 rounded-2xl flex flex-col items-start gap-2.5 hover:shadow-md transition-all border border-emerald-200 bg-emerald-50/20 shadow-sm cursor-pointer" onclick="selectDept('citizen')">
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+            <span class="ms text-emerald-600 text-lg">person_pin</span>
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 mb-0.5 text-xs">Citizen Portal</h3>
+            <p class="text-slate-500 text-[11px] leading-tight">Pay e-challans, file road hazards & view advisories.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Login Form Card -->
+    <div class="w-full max-w-sm lg:w-[40%]">
+      <div class="bg-white rounded-[1.75rem] p-8 flex flex-col gap-5 shadow-xl shadow-slate-200/50 border border-slate-100">
+        <div class="text-center">
+          <h2 class="font-headline text-2xl font-bold text-slate-900" id="loginHeader">Secure Login</h2>
+          <p class="text-slate-500 mt-1 text-xs" id="loginSubheader">Select your department and authenticate.</p>
+        </div>
+
+        <div th:if="${param.error}" class="bg-red-50 border border-red-200 text-red-700 px-4 py-2.5 rounded-2xl text-xs font-semibold text-center">
+          Invalid credentials. Please verify your details.
+        </div>
+        <div th:if="${param.logout}" class="bg-green-50 border border-green-200 text-green-700 px-4 py-2.5 rounded-2xl text-xs font-semibold text-center">
+          You have been signed out successfully.
+        </div>
+
+        <form th:action="@{/login}" method="post" class="flex flex-col gap-4" id="loginForm">
+          <!-- Department Dropdown -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold font-label text-slate-600 uppercase tracking-wider">User Type / Department</label>
+            <div class="relative">
+              <select name="department" id="deptSelect" onchange="onDeptChange()" class="input-glass input-select w-full rounded-[3rem] py-2.5 px-4 text-slate-700 appearance-none font-medium text-xs border border-slate-200 focus:bg-white cursor-pointer">
+                <option value="police">Police Department</option>
+                <option value="transport">Transport Department</option>
+                <option value="health">Health Department</option>
+                <option value="insurance">Insurance Agency</option>
+                <option value="citizen">Common User / Citizen</option>
+              </select>
+              <span class="ms absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-lg">arrow_drop_down</span>
+            </div>
+          </div>
+
+          <!-- Dynamic Field 1: Username / Vehicle Number -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold font-label text-slate-600 uppercase tracking-wider flex items-center justify-between" id="field1Label">
+              <span>Username</span>
+            </label>
+            <div class="relative">
+              <input name="username" id="usernameInput" class="input-glass w-full rounded-[3rem] py-2.5 px-4 text-slate-900 text-xs border border-slate-200 focus:bg-white transition-all font-medium" placeholder="admin" required autofocus value="admin"/>
+              <span class="ms absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none" id="field1Icon">person</span>
+            </div>
+          </div>
+
+          <!-- Dynamic Field 2: Password / Phone Number -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold font-label text-slate-600 uppercase tracking-wider" id="field2Label">Password</label>
+            <div class="relative">
+              <input name="password" id="passwordInput" type="password" class="input-glass w-full rounded-[3rem] py-2.5 px-4 text-slate-900 text-xs border border-slate-200 focus:bg-white transition-all font-medium" placeholder="••••••••" required value="admin"/>
+              <span class="ms absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-base pointer-events-none" id="field2Icon">lock</span>
+            </div>
+          </div>
+
+          <!-- Citizen Guidance Badge (Shown when Citizen is selected) -->
+          <div id="citizenBadge" class="hidden bg-emerald-50 border border-emerald-200 text-emerald-800 p-2.5 rounded-2xl text-[11px] leading-relaxed">
+            <span class="font-bold flex items-center gap-1"><span class="ms text-emerald-600 text-xs">verified</span> Citizen Quick Sign-In</span>
+            Enter your vehicle registration plate and your 10-digit registered mobile number to view your challans & active traffic alerts.
+          </div>
+
+          <!-- Captcha -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-xs font-bold font-label text-slate-600 uppercase tracking-wider">Captcha Verification</label>
+            <div class="flex items-center gap-3">
+              <div class="bg-slate-100 border border-slate-200 text-slate-800 font-mono font-bold tracking-[0.25em] px-4 py-2 text-sm rounded-2xl whitespace-nowrap select-none shadow-inner">
+                4 X 9 B 2
+              </div>
+              <input name="captcha" class="input-glass flex-grow rounded-[3rem] py-2.5 px-4 text-slate-900 text-xs border border-slate-200 focus:bg-white font-mono uppercase" placeholder="Enter captcha" value="4X9B2"/>
+            </div>
+          </div>
+
+          <!-- Links -->
+          <div class="flex justify-between items-center text-xs mt-0.5">
+            <a class="text-blue-600 hover:text-blue-700 font-semibold" href="#">Forgot Password?</a>
+            <a class="text-blue-600 hover:text-blue-700 font-semibold" href="#">New User Activation</a>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submitBtn" class="bg-[#0b57d0] hover:bg-blue-700 w-full rounded-[3rem] py-3 mt-1 font-bold text-white transition-all text-xs border-none cursor-pointer shadow-md hover:shadow-lg font-label uppercase tracking-wider">
+            Sign In
+          </button>
+        </form>
+
+        <div class="text-center text-[11px] text-slate-400 font-mono border-t border-slate-100 pt-2.5" id="hintBox">
+          Admin: <code>admin/admin</code> | Officer: <code>officer/officer123</code>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full text-center z-10 mt-auto mb-6">
+    <p class="font-label text-xs text-slate-400">
+      SafeRoad iRAD Prototype © 2026. Inspired by the Integrated Road Accident Database.
+    </p>
+  </footer>
+
+  <script>
+    function selectDept(dept) {
+      document.getElementById('deptSelect').value = dept;
+      onDeptChange();
+    }
+
+    function onDeptChange() {
+      const dept = document.getElementById('deptSelect').value;
+      const field1Label = document.getElementById('field1Label');
+      const field2Label = document.getElementById('field2Label');
+      const usernameInput = document.getElementById('usernameInput');
+      const passwordInput = document.getElementById('passwordInput');
+      const field1Icon = document.getElementById('field1Icon');
+      const field2Icon = document.getElementById('field2Icon');
+      const citizenBadge = document.getElementById('citizenBadge');
+      const hintBox = document.getElementById('hintBox');
+      const submitBtn = document.getElementById('submitBtn');
+
+      if (dept === 'citizen') {
+        field1Label.innerHTML = '<span>Vehicle Registration Number</span>';
+        usernameInput.placeholder = 'e.g. KA-01-AB-1234';
+        usernameInput.value = 'KA-01-AB-1234';
+        field1Icon.textContent = 'directions_car';
+
+        field2Label.textContent = 'Registered Mobile Number';
+        passwordInput.type = 'tel';
+        passwordInput.placeholder = 'e.g. 9876543210';
+        passwordInput.value = '9876543210';
+        field2Icon.textContent = 'smartphone';
+
+        citizenBadge.classList.remove('hidden');
+        submitBtn.textContent = 'Sign In with Vehicle & Mobile';
+        hintBox.innerHTML = 'Citizen Sign-In: <code>Plate: KA-01-AB-1234</code> | <code>Mobile: 9876543210</code>';
+      } else {
+        field1Label.innerHTML = '<span>Username / Officer ID</span>';
+        field1Icon.textContent = 'badge';
+        field2Label.textContent = 'Password / Security PIN';
+        passwordInput.type = 'password';
+        field2Icon.textContent = 'lock';
+        citizenBadge.classList.add('hidden');
+        submitBtn.textContent = 'Sign In to ' + dept.toUpperCase() + ' Portal';
+
+        if (dept === 'police') {
+          usernameInput.placeholder = 'officer or police';
+          usernameInput.value = 'officer';
+          passwordInput.placeholder = 'officer123';
+          passwordInput.value = 'officer123';
+          hintBox.innerHTML = 'Police Portal: <code>officer / officer123</code> (or <code>police / police123</code>)';
+        } else if (dept === 'transport') {
+          usernameInput.placeholder = 'transport or rto';
+          usernameInput.value = 'transport';
+          passwordInput.placeholder = 'transport123';
+          passwordInput.value = 'transport123';
+          hintBox.innerHTML = 'Transport (RTO) Portal: <code>transport / transport123</code>';
+        } else if (dept === 'health') {
+          usernameInput.placeholder = 'health or hospital';
+          usernameInput.value = 'health';
+          passwordInput.placeholder = 'health123';
+          passwordInput.value = 'health123';
+          hintBox.innerHTML = 'Health (EMS) Portal: <code>health / health123</code>';
+        } else if (dept === 'insurance') {
+          usernameInput.placeholder = 'insurance or claims';
+          usernameInput.value = 'insurance';
+          passwordInput.placeholder = 'insurance123';
+          passwordInput.value = 'insurance123';
+          hintBox.innerHTML = 'Insurance Agency Portal: <code>insurance / insurance123</code>';
+        } else {
+          usernameInput.placeholder = 'admin';
+          usernameInput.value = 'admin';
+          passwordInput.placeholder = 'admin';
+          passwordInput.value = 'admin';
+          hintBox.innerHTML = 'Master Admin: <code>admin / admin</code>';
+        }
+      }
+    }
+    // Initialize defaults on page load
+    document.addEventListener('DOMContentLoaded', onDeptChange);
+  </script>
+
+</body>
+</html>

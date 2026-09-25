@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Highways Department & NHAI - SafeRoad</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#d97706", "on-primary": "#ffffff",
+        "on-surface": "#1b1c1d", "on-surface-variant": "#434653",
+        "surface": "#faf9fa", "surface-container": "#efedee",
+        "surface-container-low": "#f5f3f4", "outline-variant": "#c3c6d5",
+        "background": "#faf9fa"
+      },
+      borderRadius: { "2xl": "1rem", "3xl": "1.5rem", "4xl": "2rem" },
+      fontFamily: { "headline": ["Noto Serif", "serif"], "body": ["Inter", "sans-serif"], "label": ["Public Sans", "sans-serif"] }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; background: #faf9fa; color: #1b1c1d; margin: 0; }
+  .tab-btn { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; border-radius:1rem; font-size:13px; font-weight:600; color:#434653; text-decoration:none; transition:all .15s; font-family:'Public Sans',sans-serif; cursor: pointer; border: none; background: transparent; }
+  .tab-btn:hover { background:#efedee; color:#1b1c1d; }
+  .tab-btn.active { background:#fef3c7; color:#b45309; box-shadow:0 1px 3px rgba(0,0,0,.08); font-weight: 700; }
+  .ms { font-family:'Material Symbols Outlined'; font-weight:400; font-style:normal; font-size:20px; line-height:1; display:inline-block; font-variation-settings:'FILL' 0,'wght' 400; }
+  .ms-fill { font-variation-settings:'FILL' 1,'wght' 400; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<header class="bg-white border-b border-outline-variant sticky top-0 z-50 shadow-sm">
+  <div class="max-w-[1600px] mx-auto px-6 py-2 flex justify-between items-center gap-4">
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-10 h-10 rounded-2xl bg-amber-600 flex items-center justify-center shadow-md">
+        <span class="ms ms-fill text-white text-[22px]">edit_road</span>
+      </div>
+      <div>
+        <p class="font-headline font-bold text-lg leading-tight text-on-surface">SafeRoad Highways</p>
+        <p class="text-[11px] text-on-surface-variant font-label">NHAI & PWD Road Infrastructure Wing</p>
+      </div>
+    </div>
+    
+    <!-- Highways Department Nav Links -->
+    <nav class="flex items-center gap-1.5 flex-1 justify-center overflow-x-auto">
+      <button type="button" onclick="switchSection('workorders')" id="topnav-workorders" class="tab-btn" th:classappend="${activeTab == 'workorders' or activeTab == null} ? 'active' : ''">
+        <span class="ms">engineering</span><span>Work Orders</span>
+      </button>
+      <button type="button" onclick="switchSection('blackspots')" id="topnav-blackspots" class="tab-btn" th:classappend="${activeTab == 'blackspots'} ? 'active' : ''">
+        <span class="ms">analytics</span><span>Blackspot Audits</span>
+      </button>
+      <button type="button" onclick="switchSection('grievances')" id="topnav-grievances" class="tab-btn" th:classappend="${activeTab == 'grievances'} ? 'active' : ''">
+        <span class="ms">report</span><span>Citizen Grievances</span>
+      </button>
+      <button type="button" onclick="switchSection('vmsalerts')" id="topnav-vmsalerts" class="tab-btn" th:classappend="${activeTab == 'vmsalerts'} ? 'active' : ''">
+        <span class="ms">add_alert</span><span>VMS Signage</span>
+      </button>
+    </nav>
+
+    <div class="flex items-center gap-3 flex-shrink-0 relative">
+      <div class="hidden sm:flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-2xl border border-amber-200">
+        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+        <span class="text-xs font-bold text-amber-800" th:text="${officerName}">NHAI Engineer</span>
+      </div>
+
+      <!-- Department Switcher Dropdown -->
+      <div class="relative">
+        <button type="button" onclick="toggleDeptMenu()" class="flex items-center gap-1 border border-outline-variant bg-surface-container-low rounded-2xl px-3 py-1.5 font-label text-xs font-semibold text-slate-700 hover:bg-slate-200 transition cursor-pointer">
+          <span class="ms text-sm">swap_horiz</span> Departments
+        </button>
+        <div id="deptMenu" class="hidden absolute right-0 top-11 w-52 bg-white border border-outline-variant rounded-2xl p-2 shadow-xl z-50 text-xs">
+          <a href="/police" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100"><span class="ms text-blue-800 text-sm">local_police</span>Police Department</a>
+          <a href="/transport" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100"><span class="ms text-sky-600 text-sm">directions_car</span>Transport (RTO)</a>
+          <a href="/highways" class="flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-amber-700 bg-amber-50"><span class="ms text-amber-600 text-sm">edit_road</span>Highways (NHAI)</a>
+          <a href="/health" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100"><span class="ms text-rose-600 text-sm">medical_services</span>Health Department</a>
+          <a href="/insurance" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100"><span class="ms text-purple-600 text-sm">assured_workload</span>Insurance Agency</a>
+          <a href="/dashboard" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 border-t border-slate-100 mt-1"><span class="ms text-slate-600 text-sm">dashboard</span>Master Overview</a>
+        </div>
+      </div>
+
+      <!-- Standalone Logout -->
+      <form th:action="@{/logout}" method="post" class="m-0">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="flex items-center gap-1.5 border border-outline-variant bg-white rounded-2xl px-3.5 py-1.5 font-label text-xs font-semibold text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer">
+          <span class="ms text-sm">logout</span>Sign Out
+        </button>
+      </form>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<div class="w-full max-w-[1600px] mx-auto px-6 pt-6 pb-16 space-y-6">
+
+  <!-- Welcome Banner -->
+  <div class="bg-gradient-to-r from-amber-950 via-slate-900 to-stone-900 text-white rounded-3xl p-7 shadow-xl relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div class="space-y-2 z-10">
+      <div class="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-full text-xs font-label font-bold uppercase tracking-wider backdrop-blur border border-white/10">
+        <span class="ms text-sm text-amber-300">construction</span>
+        <span>National Highways Authority & PWD • Road Safety Audits</span>
+      </div>
+      <h1 class="font-headline text-2xl md:text-3xl font-bold">Blackspot Audits & Road Engineering Work Orders</h1>
+      <p class="text-amber-100 text-xs md:text-sm max-w-2xl leading-relaxed">
+        Investigate high-fatality crash blackspots, assign repair work orders for potholes, damaged crash barriers, and faulty drainage, and broadcast electronic Variable Message Signs (VMS).
+      </p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-3 gap-3 min-w-[320px] z-10">
+      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-2xl p-3 text-center cursor-pointer hover:bg-white/20 transition" onclick="switchSection('workorders')">
+        <span class="text-[10px] font-bold text-amber-200 uppercase tracking-wider block">Work Orders</span>
+        <span class="font-headline font-extrabold text-2xl text-white" th:text="${totalWorkOrders}">3</span>
+        <span class="text-[9px] text-amber-300 block" th:text="${inProgressCount} + ' Active'">2 Active</span>
+      </div>
+      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-2xl p-3 text-center cursor-pointer hover:bg-white/20 transition" onclick="switchSection('blackspots')">
+        <span class="text-[10px] font-bold text-amber-200 uppercase tracking-wider block">Blackspots</span>
+        <span class="font-headline font-extrabold text-2xl text-amber-300">4</span>
+        <span class="text-[9px] text-amber-300 block">NH-44 & ORR</span>
+      </div>
+      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-2xl p-3 text-center cursor-pointer hover:bg-white/20 transition" onclick="switchSection('grievances')">
+        <span class="text-[10px] font-bold text-amber-200 uppercase tracking-wider block">Grievances</span>
+        <span class="font-headline font-extrabold text-2xl text-red-300" th:text="${pendingGrievances}">1</span>
+        <span class="text-[9px] text-red-300 block">Citizen Reported</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Banners -->
+  <div th:if="${param.created}" class="bg-emerald-50 border border-emerald-300 text-emerald-900 px-5 py-3 rounded-2xl flex items-center justify-between text-xs font-semibold">
+    <span class="flex items-center gap-2"><span class="ms text-emerald-600">check_circle</span> Highway civil work order successfully created and dispatched to contractor crew!</span>
+    <a href="/highways" class="text-emerald-700 underline font-bold">Dismiss</a>
+  </div>
+
+  <div th:if="${param.statusUpdated}" class="bg-blue-50 border border-blue-300 text-blue-900 px-5 py-3 rounded-2xl flex items-center justify-between text-xs font-semibold">
+    <span class="flex items-center gap-2"><span class="ms text-blue-600">verified</span> Work order <strong class="font-mono" th:text="${param.statusUpdated}"></strong> status updated successfully!</span>
+    <a href="/highways" class="text-blue-700 underline font-bold">Dismiss</a>
+  </div>
+
+  <!-- Highways In-Page View Switcher Pills -->
+  <div class="flex items-center gap-2 bg-white border border-outline-variant p-2 rounded-2xl shadow-sm overflow-x-auto">
+    <button type="button" onclick="switchSection('workorders')" id="tab-workorders" class="tab-btn" th:classappend="${activeTab == 'workorders' or activeTab == null} ? 'active' : ''">
+      <span class="ms">engineering</span><span>Work Orders</span>
+    </button>
+    <button type="button" onclick="switchSection('blackspots')" id="tab-blackspots" class="tab-btn" th:classappend="${activeTab == 'blackspots'} ? 'active' : ''">
+      <span class="ms">analytics</span><span>Blackspot Audits</span>
+    </button>
+    <button type="button" onclick="switchSection('grievances')" id="tab-grievances" class="tab-btn" th:classappend="${activeTab == 'grievances'} ? 'active' : ''">
+      <span class="ms">report</span><span>Citizen Pothole Grievances</span>
+    </button>
+    <button type="button" onclick="switchSection('vmsalerts')" id="tab-vmsalerts" class="tab-btn" th:classappend="${activeTab == 'vmsalerts'} ? 'active' : ''">
+      <span class="ms">add_alert</span><span>VMS Signage Broadcasts</span>
+    </button>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: WORK ORDERS (DEFAULT TAB) -->
+  <!-- ============================================================ -->
+  <div id="section-workorders" class="space-y-6" th:style="${activeTab == 'workorders' or activeTab == null} ? 'display:block;' : 'display:none;'" th:classappend="${activeTab == 'workorders' or activeTab == null} ? '' : 'hidden'">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-outline-variant rounded-3xl p-5 shadow-sm">
+      <div>
+        <h3 class="font-headline font-bold text-lg text-on-surface">Highway Civil Repair Work Orders</h3>
+        <p class="text-xs text-on-surface-variant">Track contractor crew dispatch, sanctioned budget & completion targets</p>
+      </div>
+      <button type="button" onclick="openWorkOrderModal()" class="border-none py-2.5 px-5 bg-amber-600 hover:bg-amber-700 text-white font-label text-xs font-bold rounded-2xl transition shadow cursor-pointer flex items-center gap-1.5 self-start sm:self-center">
+        <span class="ms text-sm">add</span> + New Work Order
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white border border-outline-variant rounded-3xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-surface-container-low/70 border-b border-outline-variant/40">
+            <tr>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Order ID / Location</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Highway Stretch</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Category & Details</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Contractor Crew</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Sanctioned Budget</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Target Date</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Status</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase text-right">Update</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/30">
+            <tr th:each="w : ${workOrders}" class="hover:bg-surface-container-low/50 transition">
+              <td class="px-5 py-4">
+                <span class="font-mono font-bold text-amber-900 text-xs" th:text="${w.orderId}"></span>
+                <p class="font-bold text-xs text-on-surface mt-0.5" th:text="${w.location}"></p>
+              </td>
+              <td class="px-5 py-4 font-mono font-bold text-xs text-slate-700" th:text="${w.highwayStretch}"></td>
+              <td class="px-5 py-4">
+                <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-amber-100 text-amber-800" th:text="${w.issueCategory}"></span>
+                <p class="text-xs text-on-surface-variant mt-1" th:text="${w.description}"></p>
+              </td>
+              <td class="px-5 py-4 text-xs font-semibold text-slate-800" th:text="${w.assignedCrew}"></td>
+              <td class="px-5 py-4 font-headline font-bold text-xs text-slate-900" th:text="'₹' + ${w.budgetInLakhs} + ' Lakhs'"></td>
+              <td class="px-5 py-4 font-mono text-xs text-slate-600" th:text="${w.targetCompletionDate}"></td>
+              <td class="px-5 py-4">
+                <span class="px-2.5 py-1 rounded-xl text-xs font-bold inline-block"
+                      th:classappend="${w.status == 'COMPLETED'} ? 'bg-green-100 text-green-800' : (${w.status == 'IN_PROGRESS'} ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800')"
+                      th:text="${w.status}"></span>
+              </td>
+              <td class="px-5 py-4 text-right">
+                <form th:action="@{/highways/workorder/status}" method="post" class="inline m-0">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                  <input type="hidden" name="orderId" th:value="${w.orderId}"/>
+                  <select name="status" onchange="this.form.submit()" class="px-2 py-1 bg-surface-container border border-outline-variant rounded-xl text-xs font-semibold cursor-pointer">
+                    <option value="PENDING" th:selected="${w.status == 'PENDING' or w.status == 'ASSIGNED'}">Pending / Assigned</option>
+                    <option value="IN_PROGRESS" th:selected="${w.status == 'IN_PROGRESS'}">In Progress</option>
+                    <option value="COMPLETED" th:selected="${w.status == 'COMPLETED'}">Completed</option>
+                  </select>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: BLACKSPOT AUDITS -->
+  <!-- ============================================================ -->
+  <div id="section-blackspots" class="space-y-6" th:style="${activeTab == 'blackspots'} ? 'display:block;' : 'display:none;'" th:classappend="${activeTab == 'blackspots'} ? '' : 'hidden'">
+    <div class="bg-white border border-outline-variant rounded-3xl p-6 shadow-sm space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-outline-variant">
+        <div class="flex items-center gap-2">
+          <span class="ms text-red-600">analytics</span>
+          <div>
+            <h4 class="font-headline font-bold text-base text-slate-900">High-Severity Accident Blackspots</h4>
+            <p class="text-xs text-slate-500">Telemetry aggregated from Police crash records for highway engineering retrofits</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div th:each="a : ${accidents}" class="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/60 flex items-center justify-between gap-3">
+          <div class="space-y-1">
+            <span class="font-mono font-bold text-xs text-blue-900" th:text="${a.id}">ACC-001</span>
+            <p class="font-bold text-xs text-slate-900" th:text="${a.location}">MG Road Junction</p>
+            <p class="text-xs text-slate-500" th:text="'Severity: ' + ${a.severity} + ' • ' + ${a.roadCondition}"></p>
+          </div>
+          <button type="button" onclick="openWorkOrderModalWithLoc(this.getAttribute('data-loc'))" th:data-loc="${a.location}" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer border-none flex items-center gap-1">
+            <span class="ms text-xs">construction</span> Issue Repair
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: CITIZEN POTHOLE GRIEVANCES -->
+  <!-- ============================================================ -->
+  <div id="section-grievances" class="space-y-6" th:style="${activeTab == 'grievances'} ? 'display:block;' : 'display:none;'" th:classappend="${activeTab == 'grievances'} ? '' : 'hidden'">
+    <div class="bg-white border border-outline-variant rounded-3xl p-6 shadow-sm space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-outline-variant">
+        <div class="flex items-center gap-2">
+          <span class="ms text-amber-600">report</span>
+          <div>
+            <h4 class="font-headline font-bold text-base text-slate-900">Citizen Reported Road Hazards & Potholes</h4>
+            <p class="text-xs text-slate-500">Live feed from Citizen Portal for rapid civil maintenance</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div th:each="c : ${complaints}" class="p-4 bg-amber-50/40 rounded-2xl border border-amber-200 flex items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="font-mono font-bold text-xs text-amber-900" th:text="${c.id}">CMP-101</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900" th:text="${c.issueType}">Pothole</span>
+              <span class="font-bold text-xs text-slate-900" th:text="${c.location}">MG Road</span>
+            </div>
+            <p class="text-xs text-slate-600" th:text="${c.description}">Deep pothole on outer lane.</p>
+          </div>
+          <div class="text-right">
+            <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-100 text-amber-800" th:text="${c.status}">Submitted</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 4: VMS SIGNAGE ALERTS -->
+  <!-- ============================================================ -->
+  <div id="section-vmsalerts" class="space-y-6" th:style="${activeTab == 'vmsalerts'} ? 'display:block;' : 'display:none;'" th:classappend="${activeTab == 'vmsalerts'} ? '' : 'hidden'">
+    <div class="bg-white border border-outline-variant rounded-3xl p-6 shadow-sm space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-outline-variant">
+        <div class="flex items-center gap-2">
+          <span class="ms text-amber-600">add_alert</span>
+          <div>
+            <h4 class="font-headline font-bold text-base text-slate-900">Variable Message Signs (VMS) Roadside Electronic Boards</h4>
+            <p class="text-xs text-slate-500">Real-time public highway notifications and speed advisories</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div th:each="al : ${alerts}" class="p-4 bg-slate-900 text-white rounded-2xl border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 bg-amber-500 text-slate-950 font-bold text-[10px] rounded" th:text="${al.type}">WEATHER</span>
+            <span class="font-mono text-xs text-slate-400" th:text="${al.location}">NH-44</span>
+          </div>
+          <p class="font-bold text-sm text-amber-300" th:text="${al.title}">Heavy Rain / Fog Alert</p>
+          <p class="text-xs text-slate-300" th:text="${al.description}">Reduce speed to 40 km/h.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: CREATE WORK ORDER -->
+<div id="workOrderModal" class="hidden fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white border border-outline-variant rounded-3xl w-[95vw] max-w-[540px] shadow-2xl overflow-hidden my-auto animate-fadeIn flex flex-col">
+    <div class="bg-slate-900 text-white px-5 py-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="ms text-amber-400">engineering</span>
+        <h3 class="font-headline font-bold text-sm">Issue Highway Civil Work Order</h3>
+      </div>
+      <button type="button" onclick="closeWorkOrderModal()" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border-none cursor-pointer transition">
+        <span class="ms text-xs">close</span>
+      </button>
+    </div>
+
+    <form th:action="@{/highways/workorder/create}" method="post" class="p-5 space-y-3.5">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Specific Location</label>
+          <input type="text" name="location" id="modalLocation" placeholder="e.g. Hebbal Flyover Span #4" required class="w-full px-3.5 py-2 bg-surface-container-low border border-outline-variant rounded-2xl text-xs font-medium">
+        </div>
+        <div>
+          <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Highway / Sector</label>
+          <input type="text" name="highwayStretch" placeholder="e.g. NH-44 (Km 18.4)" required class="w-full px-3.5 py-2 bg-surface-container-low border border-outline-variant rounded-2xl text-xs font-medium">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Issue Category</label>
+          <select name="issueCategory" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-2xl text-xs font-medium">
+            <option value="POTHOLE_REPAIR">Pothole Bitumen Patchwork</option>
+            <option value="CRASH_BARRIER">Crash Barrier Replacement</option>
+            <option value="DRAINAGE_DESILT">Highway Drainage Desilting</option>
+            <option value="SIGNAGE_LIGHTING">Signage & High-Mast Lighting</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Priority</label>
+          <select name="priority" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-2xl text-xs font-medium">
+            <option value="HIGH">High Priority (Emergency)</option>
+            <option value="MEDIUM" selected>Medium Priority</option>
+            <option value="ROUTINE">Routine Maintenance</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Description & Engineering Specs</label>
+        <textarea name="description" rows="2" placeholder="Provide scope of civil repair..." required class="w-full px-3.5 py-2 bg-surface-container-low border border-outline-variant rounded-2xl text-xs font-medium"></textarea>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Assigned Crew</label>
+          <input type="text" name="assignedCrew" value="NHAI Quick Response Unit #03" required class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-2xl text-xs font-medium">
+        </div>
+        <div>
+          <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Budget (₹ Lakhs)</label>
+          <input type="number" step="0.1" name="budgetInLakhs" value="3.5" required class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-2xl text-xs font-medium">
+        </div>
+        <div>
+          <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Target Date</label>
+          <input type="date" name="targetCompletionDate" value="2026-10-05" required class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-2xl text-xs font-medium">
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-outline-variant/40 flex items-center justify-between">
+        <button type="button" onclick="closeWorkOrderModal()" class="px-4 py-2 border border-slate-300 rounded-2xl text-xs font-bold text-slate-600 hover:bg-slate-100 bg-white transition cursor-pointer">
+          Cancel
+        </button>
+        <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-label text-xs font-bold rounded-2xl transition shadow cursor-pointer border-none flex items-center gap-1.5">
+          <span class="ms text-sm">construction</span> Dispatch Work Order
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function switchSection(sectionId) {
+    const sections = ['workorders', 'blackspots', 'grievances', 'vmsalerts'];
+    if (!sections.includes(sectionId)) sectionId = 'workorders';
+
+    sections.forEach(s => {
+      const el = document.getElementById('section-' + s);
+      const tab = document.getElementById('tab-' + s);
+      const topnav = document.getElementById('topnav-' + s);
+      if (el) {
+        if (s === sectionId) {
+          el.classList.remove('hidden');
+          el.style.display = 'block';
+        } else {
+          el.classList.add('hidden');
+          el.style.display = 'none';
+        }
+      }
+      if (tab) {
+        if (s === sectionId) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      }
+      if (topnav) {
+        if (s === sectionId) {
+          topnav.classList.add('active');
+        } else {
+          topnav.classList.remove('active');
+        }
+      }
+    });
+
+    try {
+      const url = new URL(window.location);
+      url.searchParams.set('tab', sectionId);
+      window.history.replaceState({}, '', url);
+    } catch(err){}
+  }
+
+  function toggleDeptMenu() {
+    const menu = document.getElementById('deptMenu');
+    if (menu) menu.classList.toggle('hidden');
+  }
+
+  window.addEventListener('click', (e) => {
+    const menu = document.getElementById('deptMenu');
+    if (menu && !menu.classList.contains('hidden')) {
+      const isBtn = e.target.closest && e.target.closest('button[onclick="toggleDeptMenu()"]');
+      const inMenu = e.target.closest && e.target.closest('#deptMenu');
+      if (!isBtn && !inMenu) {
+        menu.classList.add('hidden');
+      }
+    }
+  });
+
+  function openWorkOrderModal() {
+    const modal = document.getElementById('workOrderModal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function closeWorkOrderModal() {
+    const modal = document.getElementById('workOrderModal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function openWorkOrderModalWithLoc(loc) {
+    const el = document.getElementById('modalLocation');
+    if (el && loc) el.value = loc;
+    openWorkOrderModal();
+  }
+
+  // Check URL params for tab on load
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab && ['workorders', 'blackspots', 'grievances', 'vmsalerts'].includes(tab)) {
+      switchSection(tab);
+    }
+  });
+</script>
+
+</body>
+</html>

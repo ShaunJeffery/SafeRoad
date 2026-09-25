@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vehicles - SafeRoad</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#094cb2", "on-primary": "#ffffff", "primary-container": "#3366cc",
+        "on-surface": "#1b1c1d", "on-surface-variant": "#434653",
+        "surface": "#faf9fa", "surface-container": "#efedee",
+        "surface-container-lowest": "#ffffff", "surface-container-low": "#f5f3f4",
+        "surface-variant": "#e3e2e3", "outline-variant": "#c3c6d5",
+        "outline": "#737784", "background": "#faf9fa"
+      },
+      borderRadius: { "2xl": "1rem", "3xl": "1.5rem", "4xl": "2rem" },
+      fontFamily: { "headline": ["Noto Serif", "serif"], "body": ["Inter", "sans-serif"], "label": ["Public Sans", "sans-serif"] }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; background: #faf9fa; color: #1b1c1d; margin: 0; }
+  .nav-link { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; border-radius:1rem; font-size:13px; font-weight:600; color:#434653; text-decoration:none; transition:all .15s; font-family:'Public Sans',sans-serif; }
+  .nav-link:hover { background:#efedee; color:#1b1c1d; }
+  .nav-link.active { background:#e3e2e3; color:#1b1c1d; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .ms { font-family:'Material Symbols Outlined'; font-weight:400; font-style:normal; font-size:20px; line-height:1; display:inline-block; font-variation-settings:'FILL' 0,'wght' 400; }
+  .ms-fill { font-variation-settings:'FILL' 1,'wght' 400; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<header class="bg-white border-b border-outline-variant sticky top-0 z-50 shadow-sm">
+  <div class="max-w-[1600px] mx-auto px-6 py-2 flex justify-between items-center gap-4">
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-md">
+        <span class="ms ms-fill text-white text-[22px]">shield</span>
+      </div>
+      <div>
+        <p class="font-headline font-bold text-lg leading-tight text-on-surface">SafeRoad</p>
+        <p class="text-[11px] text-on-surface-variant font-label">Integrated Road Accident Database</p>
+      </div>
+    </div>
+    <nav class="flex items-center gap-1 flex-1 justify-center overflow-x-auto">
+      <a href="/dashboard" class="nav-link"><span class="ms">dashboard</span><span>Dashboard</span></a>
+      <a href="/accidents" class="nav-link"><span class="ms">report_problem</span><span>Accidents</span></a>
+      <a href="/vehicles"  class="nav-link active"><span class="ms">directions_car</span><span>Vehicles</span></a>
+      <a href="/challans"  class="nav-link"><span class="ms">receipt_long</span><span>E-Challan</span></a>
+      <a href="/signals"   class="nav-link"><span class="ms">traffic</span><span>Signals</span></a>
+      <a href="/alerts"    class="nav-link"><span class="ms">add_alert</span><span>Alerts</span></a>
+    </nav>
+    <div class="flex items-center gap-3 flex-shrink-0 relative">
+      <button type="button" id="adminProfileBtn" onclick="toggleAdminPopup(event)" class="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-md border-2 border-white cursor-pointer transition transform active:scale-95" title="View Current User Profile">
+        <span class="ms text-xl text-white">person</span>
+      </button>
+
+      <!-- Standalone Logout Button on the Side -->
+      <form th:action="@{/logout}" method="post" class="m-0">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="flex items-center gap-1.5 border border-outline-variant bg-white rounded-2xl px-3.5 py-1.5 font-label text-xs font-semibold text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer">
+          <span class="ms text-sm">logout</span>Logout
+        </button>
+      </form>
+
+      <div id="adminProfilePopup" class="hidden absolute right-0 top-12 w-80 bg-white border border-outline-variant rounded-3xl p-5 shadow-2xl z-50 transition-all text-left">
+        <div class="flex items-center gap-3 pb-3 border-b border-outline-variant/40">
+          <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow text-white shrink-0">
+            <span class="ms text-2xl">shield_person</span>
+          </div>
+          <div>
+            <h4 class="font-headline font-bold text-sm text-on-surface">Officer / Administrator</h4>
+            <p class="text-xs text-blue-700 font-semibold flex items-center gap-1 mt-0.5">
+              <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Active Session
+            </p>
+          </div>
+        </div>
+        <div class="py-3 space-y-2.5 text-xs">
+          <div class="flex justify-between items-center py-1 border-b border-outline-variant/20">
+            <span class="text-on-surface-variant font-medium">Clearance:</span>
+            <span class="font-bold text-emerald-700">Official Department Access</span>
+          </div>
+          <div class="flex justify-between items-center py-1">
+            <span class="text-on-surface-variant font-medium">Session:</span>
+            <span class="font-semibold bg-blue-50 text-blue-800 px-2 py-0.5 rounded-lg text-[11px]">ADMIN / POLICE</span>
+          </div>
+        </div>
+        <div class="pt-3 border-t border-outline-variant/40">
+          <form th:action="@{/logout}" method="post" class="m-0">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="w-full py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-2xl text-xs font-bold cursor-pointer transition flex items-center justify-center gap-1.5">
+              <span class="ms text-sm">logout</span> Sign Out
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  function toggleAdminPopup(e) {
+    if (e) e.stopPropagation();
+    const popup = document.getElementById('adminProfilePopup');
+    if (popup) popup.classList.toggle('hidden');
+  }
+  window.addEventListener('click', (e) => {
+    const popup = document.getElementById('adminProfilePopup');
+    const btn = document.getElementById('adminProfileBtn');
+    if (popup && !popup.classList.contains('hidden')) {
+      if (!popup.contains(e.target) && !btn.contains(e.target)) {
+        popup.classList.add('hidden');
+      }
+    }
+  });
+</script>
+
+<!-- CONTENT -->
+<div class="w-full max-w-[1600px] mx-auto px-6 pt-4 pb-12 space-y-6">
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[11px] font-label font-bold uppercase">OOP: Inheritance Hierarchy</span>
+      </div>
+      <h2 class="font-headline text-3xl text-on-surface font-bold mt-1">Vehicle & Driver Registry</h2>
+      <p class="font-body text-sm text-on-surface-variant">Structured models extending the abstract base Vehicle class.</p>
+    </div>
+  </div>
+
+  <!-- Register Vehicle Form -->
+  <div class="bg-white border border-outline-variant rounded-3xl p-6 shadow-sm">
+    <h3 class="font-headline text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
+      <span class="ms text-primary">app_registration</span> Register New Vehicle
+    </h3>
+    <form action="/vehicles/add" method="post" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <div>
+        <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1.5">License Plate</label>
+        <input name="plate" placeholder="e.g. KA-01-AB-1234" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-2xl text-sm font-mono focus:border-primary focus:bg-white transition">
+      </div>
+      <div>
+        <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1.5">Registered Owner</label>
+        <input name="owner" placeholder="Full name" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-2xl text-sm focus:border-primary focus:bg-white transition">
+      </div>
+      <div>
+        <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1.5">Vehicle Type (Subclass)</label>
+        <select name="type" class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-2xl text-sm focus:border-primary focus:bg-white transition">
+          <option value="Car">Car (LMV)</option>
+          <option value="Two Wheeler">Two Wheeler (MCWG)</option>
+          <option value="Heavy Vehicle">Heavy Vehicle (HMV)</option>
+          <option value="Emergency">Emergency Vehicle</option>
+        </select>
+      </div>
+      <div>
+        <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1.5">Registration Expiry</label>
+        <input type="date" name="expiry" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-2xl text-sm focus:border-primary focus:bg-white transition">
+      </div>
+      <div class="flex flex-col justify-end">
+        <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1.5">Insurance Valid</label>
+        <label class="flex items-center gap-2 px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-2xl cursor-pointer hover:bg-white transition">
+          <input type="checkbox" name="insured" value="true" checked class="accent-primary w-4 h-4">
+          <span class="text-xs font-bold text-on-surface">Valid Policy</span>
+        </label>
+      </div>
+      <div class="col-span-full flex justify-end">
+        <button type="submit" class="border-none py-2.5 px-6 bg-on-surface text-white font-label text-xs font-bold rounded-2xl hover:bg-primary transition-all shadow-md cursor-pointer flex items-center gap-1.5">
+          <span class="ms text-sm">save</span> Complete Vehicle Registration
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Vehicle Registry Table -->
+  <div class="bg-white border border-outline-variant rounded-3xl shadow-sm overflow-hidden">
+    <div class="p-5 border-b border-outline-variant/50 flex justify-between items-center">
+      <h3 class="font-headline font-bold text-lg text-on-surface">Registered Vehicle Fleet</h3>
+      <span class="text-xs text-on-surface-variant" th:text="${vehicles.size()} + ' vehicles on record'"></span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-surface-container-low/70 border-b border-outline-variant/40">
+          <tr>
+            <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Plate Number</th>
+            <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Java Model Subclass</th>
+            <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Owner Name</th>
+            <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Fitness / Reg Expiry</th>
+            <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Insurance Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant/30">
+          <tr th:each="v : ${vehicles}" class="hover:bg-surface-container-low/50 transition">
+            <td class="px-5 py-4 font-mono font-bold text-primary text-xs" th:text="${v.licensePlate}"></td>
+            <td class="px-5 py-4">
+              <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-surface-container text-on-surface border border-outline-variant/40" th:text="${v.vehicleType}"></span>
+            </td>
+            <td class="px-5 py-4 text-xs font-bold text-on-surface" th:text="${v.ownerName}"></td>
+            <td class="px-5 py-4 font-mono text-xs text-on-surface-variant" th:text="${v.registrationExpiry}"></td>
+            <td class="px-5 py-4">
+              <span class="px-2.5 py-1 rounded-xl text-xs font-bold inline-block"
+                    th:classappend="${v.insured} ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                    th:text="${v.insured ? 'Active Policy' : 'Uninsured / Expired'}"></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

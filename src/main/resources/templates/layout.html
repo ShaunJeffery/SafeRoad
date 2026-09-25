@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title th:text="${pageTitle != null ? pageTitle + ' - SafeRoad' : 'SafeRoad iRAD'}">SafeRoad iRAD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#094cb2", "on-primary": "#ffffff", "primary-container": "#3366cc",
+        "on-surface": "#1b1c1d", "on-surface-variant": "#434653",
+        "surface": "#faf9fa", "surface-container": "#efedee",
+        "surface-container-lowest": "#ffffff", "surface-container-low": "#f5f3f4",
+        "surface-variant": "#e3e2e3", "outline-variant": "#c3c6d5",
+        "outline": "#737784", "background": "#faf9fa",
+        "status-minor": "#0ea5e9", "status-major": "#f97316", "status-critical": "#d946ef"
+      },
+      borderRadius: { "2xl": "1rem", "3xl": "1.5rem", "4xl": "2rem" },
+      spacing: { "xs": "0.5rem", "sm": "0.75rem", "md": "1rem", "lg": "1.5rem", "xl": "2rem", "2xl": "3rem" },
+      fontFamily: {
+        "headline": ["Noto Serif", "serif"], "body": ["Inter", "sans-serif"], "label": ["Public Sans", "sans-serif"]
+      }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; background: #faf9fa; color: #1b1c1d; }
+  .nav-link { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; border-radius:1rem; font-size:13px; font-weight:600; color:#434653; text-decoration:none; transition:all .15s; font-family:'Public Sans',sans-serif; }
+  .nav-link:hover { background:#efedee; color:#1b1c1d; }
+  .nav-link.active { background:#e3e2e3; color:#1b1c1d; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+  .ms { font-family:'Material Symbols Outlined'; font-weight:400; font-style:normal; font-size:20px; line-height:1; letter-spacing:normal; text-transform:none; display:inline-block; white-space:nowrap; word-wrap:normal; direction:ltr; font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .ms-fill { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+  .card { background:#fff; border:1px solid #c3c6d5; border-radius:1.5rem; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+  th, td { padding: 0.75rem 1rem; }
+  input, select, textarea { outline:none; }
+  input:focus, select:focus, textarea:focus { ring: 2px solid #094cb2; border-color:#094cb2; }
+  button { cursor:pointer; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<header style="background:#fff;border-bottom:1px solid #c3c6d5;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+  <div style="max-width:1600px;margin:0 auto;padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+    <!-- Brand -->
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-shrink:0;">
+      <div style="width:40px;height:40px;border-radius:1rem;background:#094cb2;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(9,76,178,.3);">
+        <span class="ms ms-fill" style="color:#fff;font-size:22px;">shield</span>
+      </div>
+      <div>
+        <p style="font-family:'Noto Serif',serif;font-weight:700;font-size:18px;line-height:1.2;color:#1b1c1d;">SafeRoad</p>
+        <p style="font-size:11px;color:#434653;font-family:'Public Sans',sans-serif;">iRAD System</p>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav style="display:flex;align-items:center;gap:4px;flex:1;justify-content:center;overflow-x:auto;">
+      <a th:href="@{/dashboard}" th:classappend="${activePage == 'dashboard'} ? ' active'" class="nav-link">
+        <span class="ms">dashboard</span><span>Dashboard</span></a>
+      <a th:href="@{/accidents}" th:classappend="${activePage == 'accidents'} ? ' active'" class="nav-link">
+        <span class="ms">report_problem</span><span>Accidents</span></a>
+      <a th:href="@{/vehicles}" th:classappend="${activePage == 'vehicles'} ? ' active'" class="nav-link">
+        <span class="ms">directions_car</span><span>Vehicles</span></a>
+      <a th:href="@{/challans}" th:classappend="${activePage == 'challans'} ? ' active'" class="nav-link">
+        <span class="ms">receipt_long</span><span>E-Challan</span></a>
+      <a th:href="@{/signals}" th:classappend="${activePage == 'signals'} ? ' active'" class="nav-link">
+        <span class="ms">traffic</span><span>Signals</span></a>
+      <a th:href="@{/alerts}" th:classappend="${activePage == 'alerts'} ? ' active'" class="nav-link">
+        <span class="ms">add_alert</span><span>Alerts</span></a>
+    </nav>
+
+    <!-- Right -->
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-shrink:0;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#efedee;display:flex;align-items:center;justify-content:center;border:1px solid #c3c6d5;">
+        <span class="ms" style="font-size:18px;color:#434653;">person</span>
+      </div>
+      <form th:action="@{/logout}" method="post" style="margin:0;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" style="display:flex;align-items:center;gap:6px;border:1px solid #c3c6d5;background:#fff;border-radius:1rem;padding:6px 14px;font-family:'Public Sans',sans-serif;font-size:13px;font-weight:600;color:#434653;transition:all .15s;"
+                onmouseover="this.style.background='#efedee'" onmouseout="this.style.background='#fff'">
+          <span class="ms" style="font-size:16px;">logout</span>Logout
+        </button>
+      </form>
+    </div>
+  </div>
+</header>
+
+<!-- PAGE CONTENT SLOT -->
+<th:block th:insert="${content}"></th:block>
+
+</body>
+</html>

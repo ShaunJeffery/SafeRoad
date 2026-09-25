@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transport Department (RTO) - SafeRoad</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#0284c7", "on-primary": "#ffffff",
+        "on-surface": "#1b1c1d", "on-surface-variant": "#434653",
+        "surface": "#faf9fa", "surface-container": "#efedee",
+        "surface-container-low": "#f5f3f4", "outline-variant": "#c3c6d5",
+        "background": "#faf9fa"
+      },
+      borderRadius: { "2xl": "1rem", "3xl": "1.5rem", "4xl": "2rem" },
+      fontFamily: { "headline": ["Noto Serif", "serif"], "body": ["Inter", "sans-serif"], "label": ["Public Sans", "sans-serif"] }
+    }
+  }
+}
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; background: #faf9fa; color: #1b1c1d; margin: 0; }
+  .tab-btn { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; border-radius:1rem; font-size:13px; font-weight:600; color:#434653; text-decoration:none; transition:all .15s; font-family:'Public Sans',sans-serif; cursor: pointer; border: none; background: transparent; }
+  .tab-btn:hover { background:#efedee; color:#1b1c1d; }
+  .tab-btn.active { background:#e0f2fe; color:#0369a1; box-shadow:0 1px 3px rgba(0,0,0,.08); font-weight: 700; }
+  .ms { font-family:'Material Symbols Outlined'; font-weight:400; font-style:normal; font-size:20px; line-height:1; display:inline-block; font-variation-settings:'FILL' 0,'wght' 400; }
+  .ms-fill { font-variation-settings:'FILL' 1,'wght' 400; }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<header class="bg-white border-b border-outline-variant sticky top-0 z-50 shadow-sm">
+  <div class="max-w-[1600px] mx-auto px-6 py-2 flex justify-between items-center gap-4">
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-10 h-10 rounded-2xl bg-sky-600 flex items-center justify-center shadow-md">
+        <span class="ms ms-fill text-white text-[22px]">directions_car</span>
+      </div>
+      <div>
+        <p class="font-headline font-bold text-lg leading-tight text-on-surface">SafeRoad Transport</p>
+        <p class="text-[11px] text-on-surface-variant font-label">Regional Transport Office (RTO) Portal</p>
+      </div>
+    </div>
+    
+    <!-- Transport Department Nav Links -->
+    <nav class="flex items-center gap-1.5 flex-1 justify-center overflow-x-auto">
+      <button type="button" onclick="switchSection('registry')" id="topnav-registry" class="tab-btn" th:classappend="${activeTab == 'registry' or activeTab == null} ? 'active' : ''">
+        <span class="ms">assignment</span><span>RC & Fitness Registry</span>
+      </button>
+      <button type="button" onclick="switchSection('demerit')" id="topnav-demerit" class="tab-btn" th:classappend="${activeTab == 'demerit'} ? 'active' : ''">
+        <span class="ms">badge</span><span>Driver Demerit Ledger</span>
+      </button>
+      <button type="button" onclick="switchSection('commercial')" id="topnav-commercial" class="tab-btn" th:classappend="${activeTab == 'commercial'} ? 'active' : ''">
+        <span class="ms">local_shipping</span><span>Heavy Overload Violations</span>
+      </button>
+    </nav>
+
+    <div class="flex items-center gap-3 flex-shrink-0 relative">
+      <div class="hidden sm:flex items-center gap-2 bg-sky-50 px-3 py-1.5 rounded-2xl border border-sky-200">
+        <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+        <span class="text-xs font-bold text-sky-800" th:text="${officerName}">RTO Inspector</span>
+      </div>
+
+      <!-- Department Switcher Dropdown -->
+      <div class="relative">
+        <button type="button" onclick="toggleDeptMenu()" class="flex items-center gap-1 border border-outline-variant bg-surface-container-low rounded-2xl px-3 py-1.5 font-label text-xs font-semibold text-slate-700 hover:bg-slate-200 transition cursor-pointer">
+          <span class="ms text-sm">swap_horiz</span> Departments
+        </button>
+        <div id="deptMenu" class="hidden absolute right-0 top-11 w-52 bg-white border border-outline-variant rounded-2xl p-2 shadow-xl z-50 text-xs">
+          <a href="/police" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100"><span class="ms text-blue-800 text-sm">local_police</span>Police Department</a>
+          <a href="/transport" class="flex items-center gap-2 px-3 py-2 rounded-xl font-bold text-sky-700 bg-sky-50"><span class="ms text-sky-600 text-sm">directions_car</span>Transport (RTO)</a>
+          <a href="/highways" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100"><span class="ms text-amber-600 text-sm">edit_road</span>Highways (NHAI)</a>
+          <a href="/health" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100"><span class="ms text-rose-600 text-sm">medical_services</span>Health Department</a>
+          <a href="/insurance" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100"><span class="ms text-purple-600 text-sm">assured_workload</span>Insurance Agency</a>
+          <a href="/dashboard" class="flex items-center gap-2 px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 border-t border-slate-100 mt-1"><span class="ms text-slate-600 text-sm">dashboard</span>Master Overview</a>
+        </div>
+      </div>
+
+      <!-- Standalone Logout -->
+      <form th:action="@{/logout}" method="post" class="m-0">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="flex items-center gap-1.5 border border-outline-variant bg-white rounded-2xl px-3.5 py-1.5 font-label text-xs font-semibold text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer">
+          <span class="ms text-sm">logout</span>Sign Out
+        </button>
+      </form>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<div class="w-full max-w-[1600px] mx-auto px-6 pt-6 pb-16 space-y-6">
+
+  <!-- Welcome Banner -->
+  <div class="bg-gradient-to-r from-sky-900 via-blue-900 to-indigo-900 text-white rounded-3xl p-7 shadow-xl relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div class="space-y-2 z-10">
+      <div class="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-full text-xs font-label font-bold uppercase tracking-wider backdrop-blur border border-white/10">
+        <span class="ms text-sm text-sky-300">verified</span>
+        <span>Motor Vehicles Department • RTO Enforcement Wing</span>
+      </div>
+      <h1 class="font-headline text-2xl md:text-3xl font-bold">Vehicle Fitness & Driver Merit Ledger</h1>
+      <p class="text-sky-100 text-xs md:text-sm max-w-2xl leading-relaxed">
+        Verify motor vehicle registration certificates (RC), inspect commercial vehicle fitness & emission certificates (PUC), monitor heavy axle overloading, and manage driver license demerit penalty points.
+      </p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-3 gap-3 min-w-[320px] z-10">
+      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-2xl p-3 text-center cursor-pointer hover:bg-white/20 transition" onclick="switchSection('registry')">
+        <span class="text-[10px] font-bold text-sky-200 uppercase tracking-wider block">Registered</span>
+        <span class="font-headline font-extrabold text-2xl text-white" th:text="${totalVehicles}">5</span>
+        <span class="text-[9px] text-sky-300 block">Vehicles</span>
+      </div>
+      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-2xl p-3 text-center cursor-pointer hover:bg-white/20 transition" onclick="switchSection('commercial')">
+        <span class="text-[10px] font-bold text-sky-200 uppercase tracking-wider block">Commercial</span>
+        <span class="font-headline font-extrabold text-2xl text-amber-300" th:text="${heavyCount}">1</span>
+        <span class="text-[9px] text-sky-300 block">Heavy Trucks</span>
+      </div>
+      <div class="bg-white/10 backdrop-blur border border-white/15 rounded-2xl p-3 text-center cursor-pointer hover:bg-white/20 transition" onclick="switchSection('commercial')">
+        <span class="text-[10px] font-bold text-sky-200 uppercase tracking-wider block">Overload Fines</span>
+        <span class="font-headline font-extrabold text-2xl text-red-300" th:text="${commercialViolations}">1</span>
+        <span class="text-[9px] text-sky-300 block">Violations</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Banner if action performed -->
+  <div th:if="${param.renewed}" class="bg-emerald-50 border border-emerald-300 text-emerald-900 px-5 py-3 rounded-2xl flex items-center justify-between text-xs font-semibold">
+    <span class="flex items-center gap-2"><span class="ms text-emerald-600">check_circle</span> Vehicle Fitness Certificate & PUC successfully renewed for plate <strong class="font-mono" th:text="${param.renewed}"></strong>!</span>
+    <a href="/transport" class="text-emerald-700 underline font-bold">Dismiss</a>
+  </div>
+
+  <div th:if="${param.meritUpdated}" class="bg-blue-50 border border-blue-300 text-blue-900 px-5 py-3 rounded-2xl flex items-center justify-between text-xs font-semibold">
+    <span class="flex items-center gap-2"><span class="ms text-blue-600">badge</span> Driver license merit penalty points updated for plate <strong class="font-mono" th:text="${param.meritUpdated}"></strong>!</span>
+    <a href="/transport" class="text-blue-700 underline font-bold">Dismiss</a>
+  </div>
+
+  <!-- Transport In-Page View Switcher Pills -->
+  <div class="flex items-center gap-2 bg-white border border-outline-variant p-2 rounded-2xl shadow-sm overflow-x-auto">
+    <button type="button" onclick="switchSection('registry')" id="tab-registry" class="tab-btn" th:classappend="${activeTab == 'registry' or activeTab == null} ? 'active' : ''">
+      <span class="ms">assignment</span><span>RC & Fitness Registry</span>
+    </button>
+    <button type="button" onclick="switchSection('demerit')" id="tab-demerit" class="tab-btn" th:classappend="${activeTab == 'demerit'} ? 'active' : ''">
+      <span class="ms">badge</span><span>Driver Demerit Ledger</span>
+    </button>
+    <button type="button" onclick="switchSection('commercial')" id="tab-commercial" class="tab-btn" th:classappend="${activeTab == 'commercial'} ? 'active' : ''">
+      <span class="ms">local_shipping</span><span>Heavy Overload Violations</span>
+    </button>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 1: RC & FITNESS REGISTRY (DEFAULT TAB) -->
+  <!-- ============================================================ -->
+  <div id="section-registry" class="space-y-6" th:style="${activeTab == 'registry' or activeTab == null} ? 'display:block;' : 'display:none;'" th:classappend="${activeTab == 'registry' or activeTab == null} ? '' : 'hidden'">
+    <div class="bg-white border border-outline-variant rounded-3xl shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-outline-variant/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h3 class="font-headline font-bold text-lg text-on-surface flex items-center gap-2">
+            <span class="ms text-sky-600">commute</span> Motor Vehicle RC & Commercial Fitness Ledger
+          </h3>
+          <p class="text-xs text-on-surface-variant mt-0.5">Polymorphic vehicle classes (Car, Two-Wheeler, Heavy Vehicle, Ambulance)</p>
+        </div>
+        <span class="text-xs font-bold px-3 py-1 rounded-full bg-sky-50 text-sky-800 border border-sky-200" th:text="${vehicles.size()} + ' Registered Vehicles'"></span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-surface-container-low/70 border-b border-outline-variant/40">
+            <tr>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Plate / Owner</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Vehicle Class</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">RC Expiry</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">PUC Expiry</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">Fitness / Status</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase">License Merit Points</th>
+              <th class="px-5 py-3 font-label text-xs font-bold text-on-surface-variant uppercase text-right">RTO Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/30">
+            <tr th:each="v : ${vehicles}" class="hover:bg-surface-container-low/50 transition">
+              <td class="px-5 py-4">
+                <span class="font-mono font-bold text-on-surface text-xs" th:text="${v.licensePlate}"></span>
+                <p class="text-xs text-on-surface-variant mt-0.5" th:text="${v.ownerName}"></p>
+              </td>
+              <td class="px-5 py-4">
+                <span class="font-bold text-xs" th:text="${v.vehicleClass}"></span>
+                <p class="text-[11px] text-slate-500 font-mono" th:text="${v.fuelType} + ' • ' + ${v.engineNumber}"></p>
+              </td>
+              <td class="px-5 py-4 font-mono text-xs" th:text="${v.registrationExpiry}"></td>
+              <td class="px-5 py-4 font-mono text-xs" th:text="${v.pucExpiryDate}"></td>
+              <td class="px-5 py-4">
+                <span class="px-2.5 py-1 rounded-xl text-xs font-bold inline-block"
+                      th:classappend="${v.fitnessValid} ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                      th:text="${v.fitnessValid} ? 'Certified Valid' : 'Fitness Expired'"></span>
+              </td>
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-16 bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div class="h-2 rounded-full"
+                         th:style="'width: ' + (${v.driverMeritPoints} * 8.33) + '%;'"
+                         th:classappend="${v.driverMeritPoints > 6} ? 'bg-emerald-500' : (${v.driverMeritPoints > 3} ? 'bg-amber-500' : 'bg-red-500')"></div>
+                  </div>
+                  <span class="font-mono font-bold text-xs" th:text="${v.driverMeritPoints} + ' / 12'"></span>
+                </div>
+              </td>
+              <td class="px-5 py-4 text-right">
+                <div class="inline-flex items-center gap-1.5">
+                  <form th:action="@{/transport/fitness/renew}" method="post" class="inline m-0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" name="plate" th:value="${v.licensePlate}"/>
+                    <button type="submit" class="border border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 px-2.5 py-1 rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1">
+                      <span class="ms text-xs">verified</span> Renew Fitness
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 2: DRIVER DEMERIT LEDGER -->
+  <!-- ============================================================ -->
+  <div id="section-demerit" class="space-y-6" th:style="${activeTab == 'demerit'} ? 'display:block;' : 'display:none;'" th:classappend="${activeTab == 'demerit'} ? '' : 'hidden'">
+    <div class="bg-white border border-outline-variant rounded-3xl p-6 shadow-sm space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-outline-variant">
+        <div class="flex items-center gap-2">
+          <span class="ms text-sky-600">badge</span>
+          <div>
+            <h4 class="font-headline font-bold text-base text-slate-900">12-Point Driver Demerit Penalty System</h4>
+            <p class="text-xs text-slate-500">Deduct merit penalty points for hazardous driving offences</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div th:each="v : ${vehicles}" class="p-4 bg-surface-container-low rounded-2xl border border-outline-variant/60 flex items-center justify-between gap-3">
+          <div class="space-y-1">
+            <span class="font-mono font-bold text-xs text-sky-900" th:text="${v.licensePlate}">KA-01-AB-1234</span>
+            <p class="font-bold text-xs text-slate-900" th:text="${v.ownerName}">Rahul Sharma</p>
+            <p class="text-xs text-slate-500" th:text="'Vehicle: ' + ${v.vehicleClass}"></p>
+            <div class="flex items-center gap-2 pt-1">
+              <span class="text-xs font-semibold text-slate-600">Active Merit:</span>
+              <span class="font-mono font-extrabold text-xs px-2 py-0.5 rounded-lg bg-white border border-slate-200" th:text="${v.driverMeritPoints} + ' Points'">12 Points</span>
+            </div>
+          </div>
+          <form th:action="@{/transport/merit/deduct}" method="post" class="flex flex-col gap-1.5 m-0">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <input type="hidden" name="plate" th:value="${v.licensePlate}"/>
+            <select name="points" class="px-2 py-1 bg-white border border-slate-300 rounded-xl text-xs font-semibold cursor-pointer">
+              <option value="2">-2 Pts (Dangerous Speeding)</option>
+              <option value="3">-3 Pts (Red Light Jump)</option>
+              <option value="5">-5 Pts (DUI / Reckless Driving)</option>
+            </select>
+            <button type="submit" class="w-full py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer border-none flex items-center justify-center gap-1">
+              <span class="ms text-xs">gavel</span> Impose Demerit
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- SECTION 3: COMMERCIAL OVERLOAD VIOLATIONS -->
+  <!-- ============================================================ -->
+  <div id="section-commercial" class="space-y-6" th:style="${activeTab == 'commercial'} ? 'display:block;' : 'display:none;'" th:classappend="${activeTab == 'commercial'} ? '' : 'hidden'">
+    <div class="bg-white border border-outline-variant rounded-3xl p-6 shadow-sm space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-outline-variant">
+        <div class="flex items-center gap-2">
+          <span class="ms text-amber-600">local_shipping</span>
+          <div>
+            <h4 class="font-headline font-bold text-base text-slate-900">Commercial Heavy Vehicle Weigh-in-Motion Audits</h4>
+            <p class="text-xs text-slate-500">Violations issued against heavy transport carriers & axle load exceedances</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div th:each="c : ${challans}" th:if="${c.vehicleType == 'Heavy Vehicle' or (c.violationType != null and c.violationType.contains('Over'))}" class="p-4 bg-amber-50/40 rounded-2xl border border-amber-200 flex items-center justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="font-mono font-bold text-xs text-amber-900" th:text="${c.challanId}">CHL-1002</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900" th:text="${c.violationType}">Overloading</span>
+              <span class="font-mono font-bold text-xs text-slate-900" th:text="${c.licensePlate}">KA-04-E-9012</span>
+            </div>
+            <p class="text-xs text-slate-600" th:text="'Transporter / Carrier: ' + ${c.ownerName}"></p>
+          </div>
+          <div class="text-right">
+            <p class="font-headline font-bold text-base text-slate-900" th:text="'₹' + ${c.fineAmount}">₹5,000</p>
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold"
+                  th:classappend="${c.status == 'Paid'} ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                  th:text="${c.status}">Unpaid</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function switchSection(sectionId) {
+    const sections = ['registry', 'demerit', 'commercial'];
+    if (!sections.includes(sectionId)) sectionId = 'registry';
+
+    sections.forEach(s => {
+      const el = document.getElementById('section-' + s);
+      const tab = document.getElementById('tab-' + s);
+      const topnav = document.getElementById('topnav-' + s);
+      if (el) {
+        if (s === sectionId) {
+          el.classList.remove('hidden');
+          el.style.display = 'block';
+        } else {
+          el.classList.add('hidden');
+          el.style.display = 'none';
+        }
+      }
+      if (tab) {
+        if (s === sectionId) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      }
+      if (topnav) {
+        if (s === sectionId) {
+          topnav.classList.add('active');
+        } else {
+          topnav.classList.remove('active');
+        }
+      }
+    });
+
+    try {
+      const url = new URL(window.location);
+      url.searchParams.set('tab', sectionId);
+      window.history.replaceState({}, '', url);
+    } catch(err){}
+  }
+
+  function toggleDeptMenu() {
+    const menu = document.getElementById('deptMenu');
+    if (menu) menu.classList.toggle('hidden');
+  }
+
+  window.addEventListener('click', (e) => {
+    const menu = document.getElementById('deptMenu');
+    if (menu && !menu.classList.contains('hidden')) {
+      const isBtn = e.target.closest && e.target.closest('button[onclick="toggleDeptMenu()"]');
+      const inMenu = e.target.closest && e.target.closest('#deptMenu');
+      if (!isBtn && !inMenu) {
+        menu.classList.add('hidden');
+      }
+    }
+  });
+
+  // Check URL params for tab on load
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    if (tab && ['registry', 'demerit', 'commercial'].includes(tab)) {
+      switchSection(tab);
+    }
+  });
+</script>
+
+</body>
+</html>

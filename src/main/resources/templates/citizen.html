@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Citizen Portal - SafeRoad</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#094cb2", "on-primary": "#ffffff", "primary-container": "#3366cc",
+          "on-surface": "#1b1c1d", "on-surface-variant": "#434653",
+          "surface": "#faf9fa", "surface-container": "#efedee",
+          "surface-container-lowest": "#ffffff", "surface-container-low": "#f5f3f4",
+          "surface-variant": "#e3e2e3", "outline-variant": "#c3c6d5",
+          "outline": "#737784", "background": "#faf9fa",
+          "status-minor": "#0ea5e9", "status-major": "#f97316", "status-critical": "#d946ef"
+        },
+        borderRadius: { "2xl": "1rem", "3xl": "1.5rem", "4xl": "2rem" },
+        fontFamily: { "headline": ["Noto Serif", "serif"], "body": ["Inter", "sans-serif"], "label": ["Public Sans", "sans-serif"] }
+      }
+    }
+  }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #faf9fa; color: #1b1c1d; margin: 0; }
+    .tab-btn { display:flex; align-items:center; gap:0.5rem; padding:0.6rem 1.25rem; border-radius:1rem; font-size:13px; font-weight:600; color:#434653; background:transparent; border:none; transition:all .2s; font-family:'Public Sans',sans-serif; cursor:pointer; }
+    .tab-btn:hover { background:#efedee; color:#1b1c1d; }
+    .tab-btn.active { background:#094cb2; color:#ffffff; box-shadow:0 2px 8px rgba(9,76,178,.25); }
+    .tab-btn.active .ms { color:#ffffff !important; }
+    .ms { font-family:'Material Symbols Outlined'; font-weight:400; font-style:normal; font-size:20px; line-height:1; display:inline-block; font-variation-settings:'FILL' 0,'wght' 400; }
+    .ms-fill { font-variation-settings:'FILL' 1,'wght' 400; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn .3s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<header class="bg-white border-b border-outline-variant sticky top-0 z-50 shadow-sm">
+  <div class="max-w-[1600px] mx-auto px-6 py-2.5 flex justify-between items-center gap-4">
+    <!-- Brand Header -->
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div class="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-md">
+        <span class="ms ms-fill text-white text-[22px]">shield</span>
+      </div>
+      <div>
+        <p class="font-headline font-bold text-lg leading-tight text-on-surface">SafeRoad</p>
+        <p class="text-[11px] text-emerald-700 font-label font-bold flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Citizen Portal (Public Viewer)
+        </p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs (Separate Views) -->
+    <nav class="flex items-center gap-2 flex-1 justify-center overflow-x-auto">
+      <a id="btn-challans" th:href="@{/citizen(tab='challans')}" onclick="switchSection('challans'); return false;"
+         class="tab-btn text-decoration-none" th:classappend="${activeTab == 'challans' or activeTab == null} ? 'active' : ''">
+        <span class="ms text-primary">receipt_long</span>
+        <span>My E-Challans</span>
+      </a>
+      <a id="btn-alerts" th:href="@{/citizen(tab='alerts')}" onclick="switchSection('alerts'); return false;"
+         class="tab-btn text-decoration-none" th:classappend="${activeTab == 'alerts'} ? 'active' : ''">
+        <span class="ms text-status-critical">add_alert</span>
+        <span>Traffic Advisories</span>
+      </a>
+      <a id="btn-complaints" th:href="@{/citizen(tab='complaints')}" onclick="switchSection('complaints'); return false;"
+         class="tab-btn text-decoration-none" th:classappend="${activeTab == 'complaints'} ? 'active' : ''">
+        <span class="ms text-status-major">rate_review</span>
+        <span>File a Complaint</span>
+      </a>
+    </nav>
+
+    <!-- Citizen Profile & Sign Out with Interactive User Details Popup -->
+    <div class="flex items-center gap-3 flex-shrink-0 relative">
+      <div class="hidden sm:flex items-center gap-2 bg-surface-container-low px-3.5 py-1.5 rounded-2xl border border-outline-variant/40">
+        <span class="ms text-primary text-base">directions_car</span>
+        <span class="font-mono text-xs font-bold text-on-surface" th:text="${vehiclePlate}">KA-01-AB-1234</span>
+      </div>
+
+      <!-- Clickable Avatar Button -->
+      <button type="button" id="userProfileBtn" onclick="toggleUserPopup(event)" class="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-md border-2 border-white cursor-pointer transition transform active:scale-95" title="View Current User Profile">
+        <span class="ms text-xl text-white">person</span>
+      </button>
+
+      <!-- Standalone Sign Out Button on the Side -->
+      <form th:action="@{/logout}" method="post" class="m-0">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="flex items-center gap-1.5 border border-outline-variant bg-white rounded-2xl px-3.5 py-2 font-label text-xs font-semibold text-on-surface-variant hover:bg-surface-container transition-all cursor-pointer">
+          <span class="ms text-sm">logout</span>Sign Out
+        </button>
+      </form>
+
+      <!-- User Details Popup Dropdown Card -->
+      <div id="userProfilePopup" class="hidden absolute right-0 top-12 w-80 bg-white border border-outline-variant rounded-3xl p-5 shadow-2xl z-50 transition-all text-left">
+        <!-- Header -->
+        <div class="flex items-center gap-3 pb-3 border-b border-outline-variant/40">
+          <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow text-white shrink-0">
+            <span class="ms text-2xl">person</span>
+          </div>
+          <div>
+            <h4 class="font-headline font-bold text-sm text-on-surface">Citizen / Common User</h4>
+            <p class="text-xs text-emerald-700 font-semibold flex items-center gap-1 mt-0.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Active Public Session
+            </p>
+          </div>
+        </div>
+
+        <!-- User Information Fields -->
+        <div class="py-3 space-y-2.5 text-xs">
+          <div class="flex justify-between items-center py-1 border-b border-outline-variant/20">
+            <span class="text-on-surface-variant font-medium">Registered Vehicle:</span>
+            <span class="font-mono font-bold text-primary" th:text="${vehiclePlate}">KA-01-AB-1234</span>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-outline-variant/20">
+            <span class="text-on-surface-variant font-medium">Contact Number:</span>
+            <span class="font-mono font-bold text-on-surface">+91 98765 43210</span>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-outline-variant/20">
+            <span class="text-on-surface-variant font-medium">Insurance Policy:</span>
+            <span class="font-bold text-emerald-700">Valid (Comprehensive)</span>
+          </div>
+          <div class="flex justify-between items-center py-1 border-b border-outline-variant/20">
+            <span class="text-on-surface-variant font-medium">License Merit Points:</span>
+            <span class="font-bold text-blue-700">12 / 12 (Clear Record)</span>
+          </div>
+          <div class="flex justify-between items-center py-1">
+            <span class="text-on-surface-variant font-medium">User Role:</span>
+            <span class="font-semibold bg-surface-container px-2 py-0.5 rounded-lg text-on-surface text-[11px]">ROLE_CITIZEN</span>
+          </div>
+        </div>
+
+        <!-- Logout CTA -->
+        <div class="pt-3 border-t border-outline-variant/40">
+          <form th:action="@{/logout}" method="post" class="m-0">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="w-full py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-2xl text-xs font-bold cursor-pointer transition flex items-center justify-center gap-1.5">
+              <span class="ms text-sm">logout</span> Sign Out
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN WRAPPER -->
+<div class="w-full max-w-[1600px] mx-auto px-6 pt-6 pb-16 space-y-6">
+
+  <!-- Citizen Welcome Banner -->
+  <div class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-3xl p-7 shadow-xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div class="space-y-1.5 z-10">
+      <div class="inline-flex items-center gap-1.5 bg-white/15 px-3 py-0.5 rounded-full text-xs font-label font-bold uppercase tracking-wider backdrop-blur">
+        <span class="ms text-sm text-emerald-300">verified_user</span> Citizen Common Access
+      </div>
+      <h1 class="font-headline text-2xl md:text-3xl font-bold">Citizen Safety & Violation Portal</h1>
+      <p class="text-blue-100 text-xs md:text-sm max-w-xl">
+        Manage your vehicle's violations, track road hazard grievances, and review live city traffic alerts.
+      </p>
+    </div>
+
+    <!-- Quick Vehicle Badge -->
+    <div class="bg-white/10 backdrop-blur border border-white/20 rounded-2xl p-4 flex flex-col gap-1.5 min-w-[240px] z-10">
+      <span class="text-[11px] font-label font-bold text-blue-200 uppercase tracking-wider">Registered Plate</span>
+      <p class="font-mono text-xl font-bold tracking-wider" th:text="${vehiclePlate}">KA-01-AB-1234</p>
+      <div class="flex items-center justify-between pt-2 border-t border-white/15 text-xs text-blue-100">
+        <span>Insurance Policy:</span>
+        <span class="font-bold text-emerald-300">● Active</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Notification on filing complaint -->
+  <div th:if="${param.submitted}" class="bg-emerald-50 border border-emerald-300 text-emerald-900 px-5 py-3.5 rounded-3xl shadow-sm flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <span class="ms text-emerald-600 text-2xl">check_circle</span>
+      <div>
+        <h4 class="font-bold text-sm">Complaint Registered Successfully!</h4>
+        <p class="text-xs text-emerald-700 mt-0.5">Your ticket has been logged and dispatched to the field traffic unit for review.</p>
+      </div>
+    </div>
+    <button onclick="switchSection('complaints')" class="text-xs font-bold underline text-emerald-800 bg-transparent border-none cursor-pointer">View My Tickets</button>
+  </div>
+
+
+  <!-- ============================================================ -->
+  <!-- SEPARATE SECTION 1: MY E-CHALLANS -->
+  <!-- ============================================================ -->
+  <div id="section-challans" class="tab-content space-y-6"
+       th:classappend="${activeTab == 'challans' or activeTab == null} ? 'active' : ''"
+       th:style="${activeTab == 'challans' or activeTab == null} ? 'display:block;' : 'display:none;'">
+    <!-- Challans KPI summary -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div class="bg-white border border-outline-variant rounded-3xl p-6 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider">Total Outstanding Fines</p>
+          <h3 class="font-headline text-3xl font-bold text-on-surface mt-1" th:text="'₹' + ${unpaidAmount}">₹0</h3>
+          <p class="text-xs text-on-surface-variant mt-1" th:if="${unpaidAmount > 0}">Pay online to clear pending records</p>
+          <p class="text-xs text-emerald-600 font-bold mt-1" th:if="${unpaidAmount == 0}">✓ No outstanding dues</p>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+          <span class="ms text-2xl">payments</span>
+        </div>
+      </div>
+
+      <div class="bg-white border border-outline-variant rounded-3xl p-6 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider">Violation Records</p>
+          <h3 class="font-headline text-3xl font-bold text-primary mt-1" th:text="${challans.size()} + ' Challans'">3 Challans</h3>
+          <p class="text-xs text-on-surface-variant mt-1">Logged across state jurisdictions</p>
+        </div>
+        <div class="w-12 h-12 rounded-2xl bg-blue-50 text-primary flex items-center justify-center">
+          <span class="ms text-2xl">receipt_long</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Challans Table Card -->
+    <div class="bg-white border border-outline-variant rounded-3xl shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-outline-variant/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="font-headline font-bold text-xl text-on-surface flex items-center gap-2">
+            <span class="ms text-primary">receipt_long</span> Registered E-Challan History
+          </h2>
+          <p class="text-xs text-on-surface-variant mt-0.5">Violations captured for plate <strong class="font-mono text-on-surface" th:text="${vehiclePlate}"></strong></p>
+        </div>
+        <span class="text-xs font-bold px-3 py-1 rounded-full bg-surface-container text-on-surface border border-outline-variant/40" th:text="${challans.size()} + ' total entries'"></span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-surface-container-low/70 border-b border-outline-variant/40">
+            <tr>
+              <th class="px-6 py-3.5 font-label text-xs font-bold text-on-surface-variant uppercase">Challan ID</th>
+              <th class="px-6 py-3.5 font-label text-xs font-bold text-on-surface-variant uppercase">Violation Type</th>
+              <th class="px-6 py-3.5 font-label text-xs font-bold text-on-surface-variant uppercase">Date of Offense</th>
+              <th class="px-6 py-3.5 font-label text-xs font-bold text-on-surface-variant uppercase">Fine Amount</th>
+              <th class="px-6 py-3.5 font-label text-xs font-bold text-on-surface-variant uppercase">Payment Status</th>
+              <th class="px-6 py-3.5 font-label text-xs font-bold text-on-surface-variant uppercase text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/30">
+            <tr th:each="c : ${challans}" class="hover:bg-surface-container-low/50 transition">
+              <td class="px-6 py-4 font-mono font-bold text-primary text-xs" th:text="${c.challanId}"></td>
+              <td class="px-6 py-4">
+                <p class="font-bold text-on-surface capitalize text-xs" th:text="${c.violationType}"></p>
+                <p class="text-[11px] text-on-surface-variant" th:text="'Vehicle: ' + ${c.licensePlate} + ' (' + ${c.vehicleType} + ')'"></p>
+              </td>
+              <td class="px-6 py-4 font-mono text-xs text-on-surface-variant" th:text="${c.issueDate}"></td>
+              <td class="px-6 py-4 font-headline font-bold text-base text-on-surface" th:text="'₹' + ${c.fineAmount}"></td>
+              <td class="px-6 py-4">
+                <span class="px-2.5 py-1 rounded-xl text-xs font-bold inline-block"
+                      th:classappend="${c.status == 'Unpaid'} ? 'bg-amber-100 text-amber-800' : (${c.status == 'Paid'} ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')"
+                      th:text="${c.status}"></span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <div class="inline-flex items-center gap-1.5" th:if="${c.status == 'Unpaid'}">
+                  <button type="button"
+                          th:data-id="${c.challanId}"
+                          th:data-violation="${c.violationType}"
+                          th:data-plate="${c.licensePlate}"
+                          th:data-vtype="${c.vehicleType}"
+                          th:data-date="${c.issueDate}"
+                          th:data-amount="${c.fineAmount}"
+                          th:data-owner="${c.ownerName}"
+                          th:data-issuedby="${c.issuedBy}"
+                          onclick="openPaymentModal(this.getAttribute('data-id'), this.getAttribute('data-violation'), this.getAttribute('data-plate'), this.getAttribute('data-vtype'), this.getAttribute('data-date'), this.getAttribute('data-amount'), this.getAttribute('data-owner'), this.getAttribute('data-issuedby'))"
+                          class="border-none bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition shadow-sm flex items-center gap-1">
+                    <span class="ms text-sm">payment</span> Pay ₹<span th:text="${c.fineAmount}"></span>
+                  </button>
+
+                  <button type="button"
+                          th:data-id="${c.challanId}"
+                          th:data-violation="${c.violationType}"
+                          th:data-plate="${c.licensePlate}"
+                          th:data-vtype="${c.vehicleType}"
+                          th:data-date="${c.issueDate}"
+                          th:data-amount="${c.fineAmount}"
+                          th:data-owner="${c.ownerName}"
+                          th:data-issuedby="${c.issuedBy}"
+                          onclick="printCitizenBillDirect(this.getAttribute('data-id'), this.getAttribute('data-plate'), this.getAttribute('data-owner'), this.getAttribute('data-vtype'), this.getAttribute('data-violation'), this.getAttribute('data-amount'), this.getAttribute('data-date'), 'Unpaid', this.getAttribute('data-issuedby'))"
+                          class="border border-outline-variant bg-white hover:bg-surface-container text-on-surface px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1" title="Print Statutory Bill">
+                    <span class="ms text-xs">print</span> Bill
+                  </button>
+
+                  <form th:action="@{/challans/dispute/{id}(id=${c.challanId})}" method="post" class="inline m-0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="border border-outline-variant bg-white hover:bg-surface-container text-on-surface px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition">
+                      Dispute
+                    </button>
+                  </form>
+                </div>
+
+                <div th:if="${c.status == 'Paid'}" class="inline-flex items-center gap-2">
+                  <button type="button"
+                          th:data-id="${c.challanId}"
+                          th:data-violation="${c.violationType}"
+                          th:data-plate="${c.licensePlate}"
+                          th:data-vtype="${c.vehicleType}"
+                          th:data-date="${c.issueDate}"
+                          th:data-amount="${c.fineAmount}"
+                          th:data-owner="${c.ownerName}"
+                          th:data-issuedby="${c.issuedBy}"
+                          onclick="printCitizenBillDirect(this.getAttribute('data-id'), this.getAttribute('data-plate'), this.getAttribute('data-owner'), this.getAttribute('data-vtype'), this.getAttribute('data-violation'), this.getAttribute('data-amount'), this.getAttribute('data-date'), 'Paid', this.getAttribute('data-issuedby'))"
+                          class="border border-outline-variant bg-white hover:bg-surface-container text-on-surface px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1" title="Print Payment Receipt">
+                    <span class="ms text-xs">receipt</span> Receipt
+                  </button>
+                  <span class="text-emerald-700 font-bold text-xs flex items-center gap-1">
+                    <span class="ms text-sm">check_circle</span> Paid & Cleared
+                  </span>
+                </div>
+
+                <span th:if="${c.status == 'Disputed'}" class="text-red-700 font-bold text-xs">
+                  Under Grievance Review
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================ -->
+  <!-- SEPARATE SECTION 2: TRAFFIC ADVISORIES & ALERTS -->
+  <!-- ============================================================ -->
+  <div id="section-alerts" class="tab-content space-y-6"
+       th:classappend="${activeTab == 'alerts'} ? 'active' : ''"
+       th:style="${activeTab == 'alerts'} ? 'display:block;' : 'display:none;'">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-outline-variant rounded-3xl p-6 shadow-sm">
+      <div>
+        <h2 class="font-headline font-bold text-2xl text-on-surface flex items-center gap-2">
+          <span class="ms text-status-critical">add_alert</span> Live Traffic & Road Disruption Advisories
+        </h2>
+        <p class="text-xs text-on-surface-variant mt-1">Official real-time broadcasts on road closures, construction zones, and adverse weather conditions</p>
+      </div>
+      <span class="text-xs font-bold px-3 py-1 rounded-full bg-red-100 text-red-800 self-start sm:self-center" th:text="${activeAlertCount} + ' Active Alerts'"></span>
+    </div>
+
+    <!-- Alerts Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div th:each="a : ${alerts}" class="bg-white border border-outline-variant rounded-3xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+        <div>
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-label font-bold uppercase tracking-wider bg-surface-container text-on-surface border border-outline-variant/40" th:text="${a.type}"></span>
+              <h3 class="font-headline font-bold text-lg text-on-surface mt-2" th:text="${a.title}"></h3>
+              <p class="text-xs text-on-surface-variant flex items-center gap-1 mt-1 font-medium">
+                <span class="ms text-xs text-primary">location_on</span>
+                <span th:text="${a.location}"></span>
+              </p>
+            </div>
+            <span class="px-2.5 py-1 rounded-xl text-xs font-bold"
+                  th:classappend="${a.severity == 'Critical'} ? 'bg-red-100 text-red-700' : (${a.severity == 'High'} ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800')"
+                  th:text="${a.severity}"></span>
+          </div>
+          <p class="font-body text-xs text-on-surface-variant leading-relaxed mb-4" th:text="${a.message}"></p>
+        </div>
+
+        <div class="pt-3 border-t border-outline-variant/30 flex items-center justify-between text-xs text-on-surface-variant">
+          <span class="font-mono" th:text="${a.timestamp}"></span>
+          <span class="bg-green-100 text-green-800 font-bold px-2 py-0.5 rounded-lg text-[10px]" th:if="${a.active}">● Active Route Impact</span>
+          <span class="bg-gray-100 text-gray-600 font-bold px-2 py-0.5 rounded-lg text-[10px]" th:if="${!a.active}">Resolved</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================================ -->
+  <!-- SEPARATE SECTION 3: FILE A COMPLAINT & GRIEVANCES -->
+  <!-- ============================================================ -->
+  <div id="section-complaints" class="tab-content space-y-6"
+       th:classappend="${activeTab == 'complaints'} ? 'active' : ''"
+       th:style="${activeTab == 'complaints'} ? 'display:block;' : 'display:none;'">
+    <!-- Complaint Filing Form -->
+    <div class="bg-white border border-outline-variant rounded-3xl p-6 shadow-sm">
+      <div class="mb-6">
+        <span class="px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 text-[11px] font-label font-bold uppercase tracking-wider">Citizen Grievance Redressal</span>
+        <h2 class="font-headline font-bold text-2xl text-on-surface mt-1.5 flex items-center gap-2">
+          <span class="ms text-status-major">campaign</span> File a Road Complaint or Safety Hazard
+        </h2>
+        <p class="text-xs text-on-surface-variant">Report dangerous road potholes, malfunctioning traffic signals, reckless driving, or contest an erroneous e-challan.</p>
+      </div>
+
+      <form th:action="@{/citizen/complaint}" method="post" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        
+        <div>
+          <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1.5">Grievance Category</label>
+          <select name="category" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-2xl text-xs font-medium focus:border-primary focus:bg-white transition cursor-pointer">
+            <option value="Pothole / Road Hazard">🕳️ Pothole / Severe Road Hazard</option>
+            <option value="Faulty Traffic Signal">🚦 Faulty / Malfunctioning Traffic Signal</option>
+            <option value="Wrong E-Challan Dispute">📄 Wrong E-Challan Dispute / Camera Error</option>
+            <option value="Reckless Driving Report">🚗 Reckless / Dangerous Driving Incident</option>
+            <option value="Hit & Run Evidence Tip">🚨 Hit & Run Incident Tip / Eyewitness</option>
+            <option value="Street Light / Visibility Issue">💡 Street Light Failure / Night Blindspot</option>
+            <option value="Other Traffic Grievance">📝 General Traffic Grievance</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1.5">Location / Landmark</label>
+          <input name="location" placeholder="e.g. Trinity Circle to Residency Road Underpass" required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-2xl text-xs focus:border-primary focus:bg-white transition">
+        </div>
+
+        <div class="col-span-full">
+          <label class="font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1.5">Incident Details & Context</label>
+          <textarea name="description" rows="3" placeholder="Describe the road issue, vehicle details, time of incident, or challan number to dispute..." required class="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant rounded-2xl text-xs focus:border-primary focus:bg-white transition"></textarea>
+        </div>
+
+        <div class="col-span-full flex items-center justify-between pt-2">
+          <span class="text-xs text-on-surface-variant">Your ticket will be assigned a reference number and dispatched to the field traffic unit.</span>
+          <button type="submit" class="border-none py-2.5 px-6 bg-on-surface text-white font-label text-xs font-bold rounded-2xl hover:bg-primary transition-all shadow-md cursor-pointer flex items-center gap-1.5">
+            <span class="ms text-sm">send</span> Submit Grievance Ticket
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- My Filed Complaints Table -->
+    <div class="bg-white border border-outline-variant rounded-3xl shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-outline-variant/50 flex justify-between items-center">
+        <div>
+          <h3 class="font-headline font-bold text-lg text-on-surface">My Grievance Tracking Status</h3>
+          <p class="text-xs text-on-surface-variant">Live status of complaints filed under your registered vehicle</p>
+        </div>
+        <span class="text-xs font-bold px-3 py-1 rounded-full bg-surface-container text-on-surface" th:text="${complaints.size()} + ' total tickets'"></span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-surface-container-low/70 border-b border-outline-variant/40">
+            <tr>
+              <th class="px-6 py-3.5 font-label text-xs font-bold text-on-surface-variant uppercase">Ticket Ref</th>
+              <th class="px-6 py-3.5 font-label text-xs font-bold text-on-surface-variant uppercase">Category</th>
+              <th class="px-6 py-3.5 font-label text-xs font-bold text-on-surface-variant uppercase">Location & Details</th>
+              <th class="px-6 py-3.5 font-label text-xs font-bold text-on-surface-variant uppercase">Logged Time</th>
+              <th class="px-6 py-3.5 font-label text-xs font-bold text-on-surface-variant uppercase text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/30">
+            <tr th:each="comp : ${complaints}" class="hover:bg-surface-container-low/50 transition">
+              <td class="px-6 py-4 font-mono font-bold text-primary text-xs" th:text="${comp.complaintId}"></td>
+              <td class="px-6 py-4 font-bold text-on-surface text-xs" th:text="${comp.category}"></td>
+              <td class="px-6 py-4">
+                <p class="text-xs font-semibold text-on-surface" th:text="${comp.location}"></p>
+                <p class="text-[11px] text-on-surface-variant mt-0.5" th:text="${comp.description}"></p>
+              </td>
+              <td class="px-6 py-4 font-mono text-xs text-on-surface-variant" th:text="${comp.timestamp}"></td>
+              <td class="px-6 py-4 text-right">
+                <span class="px-2.5 py-1 rounded-xl text-xs font-bold inline-block"
+                      th:classappend="${comp.status == 'Submitted'} ? 'bg-amber-100 text-amber-800' : (${comp.status == 'Resolved'} ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800')"
+                      th:text="${comp.status}"></span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- PAYMENT GATEWAY & INVOICE MODAL (VIEWPORT-ADAPTIVE COMPACT) -->
+<!-- ============================================================ -->
+<div id="paymentModal" class="hidden fixed inset-0 z-50 bg-black/65 backdrop-blur-sm flex items-center justify-center p-3">
+  <div class="bg-white border border-outline-variant rounded-2xl w-[95vw] max-w-[520px] shadow-2xl overflow-hidden my-auto animate-fadeIn max-h-[90vh] flex flex-col">
+    
+    <!-- Modal Header (Compact) -->
+    <div class="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+          <span class="ms text-base">lock</span>
+        </div>
+        <h3 class="font-headline font-bold text-xs">SafeRoad Payment Gateway</h3>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="printCitizenCurrentBill()" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1 border-none" title="Print statutory bill slip">
+          <span class="ms text-xs">print</span> Print Bill
+        </button>
+        <button type="button" onclick="closePaymentModal()" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border-none cursor-pointer transition">
+          <span class="ms text-xs">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Body (Scrollable if viewport is tiny) -->
+    <div class="p-3.5 space-y-2.5 overflow-y-auto">
+      
+      <!-- Violation Summary Strip -->
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="modalChallanId" class="font-mono font-bold text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">CHL-1001</span>
+            <h4 id="modalViolation" class="font-headline font-bold text-xs text-slate-900">Over Speeding</h4>
+          </div>
+          <p class="text-[10px] text-slate-500 mt-0.5">
+            Vehicle: <strong id="modalPlate" class="font-mono text-slate-800">KA-01-AB-1234</strong> • <span id="modalDate">2026-09-24</span>
+          </p>
+        </div>
+        <div class="text-right">
+          <span class="text-[9px] text-slate-400 uppercase font-bold">Total Due</span>
+          <p id="modalTotalFine" class="font-headline font-bold text-base text-primary leading-tight">₹1,000.00</p>
+        </div>
+      </div>
+
+      <!-- Payment Method Tabs -->
+      <div>
+        <div class="grid grid-cols-4 gap-1 mb-2">
+          <button type="button" id="payTabBtn-upi" onclick="switchPayTab('upi')" class="pay-method-btn active flex items-center justify-center gap-1 p-1.5 rounded-lg border border-primary bg-primary/10 text-primary text-[10px] font-bold cursor-pointer transition">
+            <span class="ms text-sm">qr_code_2</span>
+            <span>UPI / QR</span>
+          </button>
+          <button type="button" id="payTabBtn-card" onclick="switchPayTab('card')" class="pay-method-btn flex items-center justify-center gap-1 p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 text-[10px] font-bold cursor-pointer transition">
+            <span class="ms text-sm">credit_card</span>
+            <span>Card</span>
+          </button>
+          <button type="button" id="payTabBtn-netbanking" onclick="switchPayTab('netbanking')" class="pay-method-btn flex items-center justify-center gap-1 p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 text-[10px] font-bold cursor-pointer transition">
+            <span class="ms text-sm">account_balance</span>
+            <span>NetBank</span>
+          </button>
+          <button type="button" id="payTabBtn-vpa" onclick="switchPayTab('vpa')" class="pay-method-btn flex items-center justify-center gap-1 p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 text-[10px] font-bold cursor-pointer transition">
+            <span class="ms text-sm">send_to_mobile</span>
+            <span>VPA</span>
+          </button>
+        </div>
+
+        <!-- 1. UPI QR View -->
+        <div id="payContent-upi" class="pay-content block bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-center space-y-1.5">
+          <div class="inline-block p-1 bg-white rounded-lg shadow-sm border border-slate-200">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=upi://pay?pa=saferoad.enforcement@sbi&pn=SafeRoad-iRAD&cu=INR" alt="UPI QR" class="w-20 h-20 mx-auto rounded">
+          </div>
+          <div class="flex items-center justify-center gap-1.5 text-[9px] font-bold text-slate-600">
+            <span class="px-1.5 py-0.5 bg-white rounded border border-slate-200">GPay</span>
+            <span class="px-1.5 py-0.5 bg-white rounded border border-slate-200">PhonePe</span>
+            <span class="px-1.5 py-0.5 bg-white rounded border border-slate-200">Paytm</span>
+            <span class="px-1.5 py-0.5 bg-white rounded border border-slate-200">BHIM</span>
+          </div>
+          <p class="text-[9px] text-slate-500">Scan & Pay via any UPI App • <code class="font-mono text-slate-700 font-bold">saferoad.enforcement@sbi</code></p>
+        </div>
+
+        <!-- 2. Card View -->
+        <div id="payContent-card" class="pay-content hidden bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
+          <input type="text" placeholder="Card Number (4532 •••• •••• 8912)" maxlength="19" class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" placeholder="MM / YY" maxlength="5" class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono">
+            <input type="password" placeholder="CVV" maxlength="4" class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono">
+          </div>
+          <input type="text" placeholder="Cardholder Name" class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs">
+        </div>
+
+        <!-- 3. NetBanking View -->
+        <div id="payContent-netbanking" class="pay-content hidden bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
+          <label class="block text-[10px] font-bold text-slate-600">Select Bank</label>
+          <select class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold cursor-pointer">
+            <option>State Bank of India (SBI)</option>
+            <option>HDFC Bank</option>
+            <option>ICICI Bank</option>
+            <option>Axis Bank</option>
+            <option>Punjab National Bank (PNB)</option>
+            <option>Canara Bank</option>
+          </select>
+          <p class="text-[9px] text-slate-500">You will be redirected to the secure bank portal.</p>
+        </div>
+
+        <!-- 4. VPA View -->
+        <div id="payContent-vpa" class="pay-content hidden bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-1.5">
+          <label class="block text-[10px] font-bold text-slate-600">Enter UPI ID</label>
+          <input type="text" placeholder="e.g. mobile@upi or name@okhdfc" class="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono">
+          <p class="text-[9px] text-slate-500">A collect notification will be sent to your UPI app.</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons Footer -->
+      <form id="paymentForm" method="post" class="m-0 pt-2 border-t border-slate-200 flex items-center justify-between">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        
+        <button type="button" onclick="closePaymentModal()" class="px-3.5 py-1.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 bg-white transition cursor-pointer">
+          Cancel
+        </button>
+
+        <button type="submit" id="btnConfirmPay" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-label text-xs font-bold rounded-xl transition-all shadow cursor-pointer flex items-center gap-1 border-none">
+          <span class="ms text-xs">lock</span> Complete Payment
+        </button>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- Tab Switching & Popup Script -->
+<script>
+  function switchSection(sectionId) {
+    // Hide all sections
+    document.querySelectorAll('.tab-content').forEach(el => {
+      el.classList.remove('active');
+      el.style.display = 'none';
+    });
+    // Deactivate all tab buttons
+    document.querySelectorAll('.tab-btn').forEach(el => {
+      el.classList.remove('active');
+    });
+
+    // Show target section
+    const targetSection = document.getElementById('section-' + sectionId);
+    const targetBtn = document.getElementById('btn-' + sectionId);
+    if (targetSection) {
+      targetSection.classList.add('active');
+      targetSection.style.display = 'block';
+    }
+    if (targetBtn) {
+      targetBtn.classList.add('active');
+    }
+
+    // Update URL hash
+    window.location.hash = sectionId;
+  }
+
+  // User Profile Popup Toggle
+  function toggleUserPopup(e) {
+    if (e) e.stopPropagation();
+    const popup = document.getElementById('userProfilePopup');
+    if (popup) {
+      popup.classList.toggle('hidden');
+    }
+  }
+
+  // Close popup when clicking outside
+  window.addEventListener('click', (e) => {
+    const popup = document.getElementById('userProfilePopup');
+    const btn = document.getElementById('userProfileBtn');
+    if (popup && !popup.classList.contains('hidden')) {
+      if (!popup.contains(e.target) && !btn.contains(e.target)) {
+        popup.classList.add('hidden');
+      }
+    }
+  });
+
+  // ==========================================
+  // PAYMENT GATEWAY MODAL LOGIC
+  // ==========================================
+  let citizenBillData = {
+    id: 'CHL-1001',
+    plate: 'KA-01-AB-1234',
+    owner: 'Rahul Sharma',
+    vtype: 'Car (LMV)',
+    violation: 'Over Speeding',
+    amount: '1000',
+    date: '2026-09-24',
+    status: 'Unpaid',
+    issuedby: 'Traffic Enforcement Unit'
+  };
+
+  function openPaymentModal(id, violation, plate, vtype, date, amount, owner, issuedby) {
+    citizenBillData = {
+      id: id,
+      violation: violation,
+      plate: plate,
+      vtype: vtype,
+      date: date,
+      amount: amount,
+      owner: owner || 'Rahul Sharma',
+      status: 'Unpaid',
+      issuedby: issuedby || 'Traffic Enforcement Unit'
+    };
+
+    document.getElementById('modalChallanId').textContent = id;
+    document.getElementById('modalViolation').textContent = violation;
+    document.getElementById('modalPlate').textContent = plate;
+    document.getElementById('modalDate').textContent = date;
+    document.getElementById('modalTotalFine').textContent = '₹' + amount + '.00';
+    document.getElementById('btnConfirmPay').innerHTML = `<span class="ms text-sm">lock</span> Pay ₹${amount} Securely`;
+
+    // Set post action
+    document.getElementById('paymentForm').action = '/challans/pay/' + id;
+
+    // Show modal
+    document.getElementById('paymentModal').classList.remove('hidden');
+  }
+
+  function closePaymentModal() {
+    document.getElementById('paymentModal').classList.add('hidden');
+  }
+
+  function printCitizenCurrentBill() {
+    printCitizenBillDirect(
+      citizenBillData.id,
+      citizenBillData.plate,
+      citizenBillData.owner,
+      citizenBillData.vtype,
+      citizenBillData.violation,
+      citizenBillData.amount,
+      citizenBillData.date,
+      citizenBillData.status,
+      citizenBillData.issuedby
+    );
+  }
+
+  function printCitizenBillDirect(id, plate, owner, vtype, violation, amount, date, status, issuedby) {
+    const isPaid = status === 'Paid';
+    const printHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>SafeRoad E-Challan Bill - ${id}</title>
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #fff; color: #0f172a; padding: 20px; }
+          .bill-card { max-width: 480px; margin: 0 auto; border: 2px solid #0f172a; border-radius: 12px; padding: 20px; }
+          .text-center { text-align: center; }
+          .text-right { text-align: right; }
+          .font-mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+          .font-bold { font-weight: 700; }
+          .header { border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 12px; }
+          .header h2 { font-size: 15px; font-weight: 800; text-transform: uppercase; margin: 3px 0; }
+          .header p { font-size: 10px; color: #475569; }
+          .section-box { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 11px; }
+          .section-box .row { display: flex; justify-content: space-between; padding: 2px 0; }
+          .section-box .label { color: #64748b; font-weight: 500; }
+          .section-box .val { font-weight: 700; color: #0f172a; }
+          .fee-table { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 11px; }
+          .fee-table .row { display: flex; justify-content: space-between; padding: 2px 0; }
+          .fee-table .total-row { display: flex; justify-content: space-between; border-top: 1px solid #94a3b8; padding-top: 6px; margin-top: 4px; font-size: 13px; font-weight: 800; }
+          .total-amount { color: #0037b3; }
+          .footer-strip { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed #cbd5e1; padding-top: 10px; margin-top: 10px; font-size: 9px; }
+          .qr-box { display: flex; align-items: center; gap: 8px; }
+          .qr-img { width: 56px; height: 56px; border: 1px solid #cbd5e1; border-radius: 4px; }
+          .status-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: 800; font-size: 10px; }
+          .status-unpaid { background: #fef3c7; color: #92400e; }
+          .status-paid { background: #dcfce7; color: #166534; }
+          @media print {
+            body { padding: 0; }
+            .bill-card { border: 1.5px solid #000; box-shadow: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="bill-card">
+          <div class="header text-center">
+            <p class="font-bold" style="letter-spacing: 1px; text-transform: uppercase;">GOVERNMENT OF INDIA • MoRTH</p>
+            <h2>TRAFFIC ENFORCEMENT STATUTORY BILL</h2>
+            <p>SafeRoad Intelligent Road Accident & Enforcement System (iRAD)</p>
+          </div>
+
+          <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">Challan Ref No</span>
+              <p class="font-mono font-bold" style="font-size: 13px; color: #0037b3;">${id}</p>
+            </div>
+            <div class="text-right">
+              <span style="font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">Date of Offense</span>
+              <p class="font-mono font-bold" style="font-size: 11px;">${date}</p>
+            </div>
+          </div>
+
+          <div class="section-box">
+            <div class="row"><span class="label">Vehicle Registration:</span><span class="val font-mono">${plate}</span></div>
+            <div class="row"><span class="label">Registered Owner:</span><span class="val">${owner || 'Rahul Sharma'}</span></div>
+            <div class="row"><span class="label">Vehicle Category:</span><span class="val">${vtype || 'Car (LMV)'}</span></div>
+            <div class="row"><span class="label">Enforcement Unit:</span><span class="val font-mono">${issuedby || 'Speed Radar Cam #04'}</span></div>
+          </div>
+
+          <div class="fee-table">
+            <div class="row" style="border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 4px;">
+              <span class="font-bold">Violation Offense:</span>
+              <span class="font-bold" style="color: #b91c1c;">${violation}</span>
+            </div>
+            <div class="row"><span style="color: #475569;">Statutory MV Act Base Fine:</span><span class="font-bold">₹${amount}.00</span></div>
+            <div class="row"><span style="color: #475569;">Road Safety Cess (0%):</span><span style="color: #047857; font-weight: 600;">₹0.00 (Waived)</span></div>
+            <div class="row"><span style="color: #475569;">Electronic Processing Fee:</span><span style="color: #047857; font-weight: 600;">₹0.00 (Free)</span></div>
+            <div class="total-row">
+              <span>TOTAL ASSESSED PENALTY:</span>
+              <span class="total-amount font-mono">₹${amount}.00</span>
+            </div>
+          </div>
+
+          <div class="footer-strip">
+            <div class="qr-box">
+              <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=upi://pay?pa=saferoad.enforcement@sbi&pn=SafeRoad-iRAD&cu=INR" alt="QR">
+              <div>
+                <p class="font-bold">Scan & Settle Online</p>
+                <p class="font-mono" style="font-size: 8px; color: #475569;">saferoad.enforcement@sbi</p>
+                <p class="status-tag ${isPaid ? 'status-paid' : 'status-unpaid'}" style="margin-top: 2px;">
+                  ${isPaid ? '✓ PAID & CLEARED' : '⚠ PAYMENT PENDING'}
+                </p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="font-bold">TRAFFIC POLICE HQ</p>
+              <p style="color: #047857; font-style: italic;">Digitally Certified Bill</p>
+              <p class="font-mono" style="font-size: 8px; color: #64748b;">SEC-133 MV ACT 1988</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    let printFrame = document.getElementById('citizenPrintFrame');
+    if (!printFrame) {
+      printFrame = document.createElement('iframe');
+      printFrame.id = 'citizenPrintFrame';
+      printFrame.style.position = 'fixed';
+      printFrame.style.right = '0';
+      printFrame.style.bottom = '0';
+      printFrame.style.width = '0';
+      printFrame.style.height = '0';
+      printFrame.style.border = '0';
+      document.body.appendChild(printFrame);
+    }
+
+    const doc = printFrame.contentWindow.document;
+    doc.open();
+    doc.write(printHtml);
+    doc.close();
+
+    setTimeout(() => {
+      printFrame.contentWindow.focus();
+      printFrame.contentWindow.print();
+    }, 250);
+  }
+
+  function switchPayTab(tabName) {
+    // Hide all contents
+    document.querySelectorAll('.pay-content').forEach(el => {
+      el.classList.add('hidden');
+      el.classList.remove('block');
+    });
+    // Remove active styles from method buttons
+    document.querySelectorAll('.pay-method-btn').forEach(el => {
+      el.className = 'pay-method-btn flex items-center justify-center gap-1 p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 text-[10px] font-bold cursor-pointer transition';
+    });
+
+    // Show target content
+    const targetContent = document.getElementById('payContent-' + tabName);
+    const targetBtn = document.getElementById('payTabBtn-' + tabName);
+    if (targetContent) {
+      targetContent.classList.remove('hidden');
+      targetContent.classList.add('block');
+    }
+    if (targetBtn) {
+      targetBtn.className = 'pay-method-btn active flex items-center justify-center gap-1 p-1.5 rounded-lg border border-primary bg-primary/10 text-primary text-[10px] font-bold cursor-pointer transition';
+    }
+  }
+
+  // Check URL hash or query params on load
+  window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.replace('#', '');
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+
+    if (urlParams.get('submitted') === 'true' || tabParam === 'complaints' || hash === 'complaints' || hash === 'complaints-section') {
+      switchSection('complaints');
+    } else if (tabParam === 'alerts' || hash === 'alerts' || hash === 'alerts-section') {
+      switchSection('alerts');
+    } else if (tabParam === 'challans' || hash === 'challans' || hash === 'challans-section') {
+      switchSection('challans');
+    }
+  });
+</script>
+
+</body>
+</html>
