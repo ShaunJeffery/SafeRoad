@@ -5,26 +5,77 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-> **SafeRoad** is an enterprise-grade Java web application inspired by the Government of India's **iRAD (Integrated Road Accident Database)** initiative. It unifies traffic police incident reporting, dynamic signal corridor pre-emption, automated polymorphic fine calculations, and a citizen grievance redressal portal.
+> **SafeRoad System** is an integrated multi-agency digital platform designed to connect law enforcement, transport authorities, emergency medical responders, insurance providers, and citizens onto a single unified real-time traffic and road safety operations system.
 
 ---
 
-## 🌟 Key Features
+## 📌 Problem Statement
 
-- 🚦 **Smart Traffic Signal Corridor Control:** Dynamic cycle switching and emergency green corridor priority for first-responders.
-- 📄 **Polymorphic E-Challan Penalty Engine:** Dynamic fine calculation calculated based on vehicle classification hierarchy (`Car`, `TwoWheeler`, `HeavyVehicle`, `EmergencyVehicle`).
-- 👤 **Citizen Safety & Grievance Portal:**
-  - Dedicated **3-Tab View**: *My E-Challans*, *Traffic Advisories*, and *File a Complaint*.
-  - Frictionless login using **Vehicle Registration Plate** (`KA-01-AB-1234`) and **Mobile Number**.
-  - Real-time grievance tracking with ticket reference IDs (`CMP-101`).
-- 🚨 **Incident Telemetry & FIR Logging:** Real-time logging of severity levels (`FATAL`, `SEVERE`, `MODERATE`, `MINOR`) and patrol unit dispatches.
-- 📊 **Executive Command Center:** 6-card live KPI metrics tracking uncollected fines, active road closures, and registered fleet counts.
+Road traffic incidents, emergency response delays, and traffic rule violations are often exacerbated by isolated communication silos between administrative bodies:
+- **Traffic Police** manage street enforcement and incident records independently.
+- **Emergency Medical Services (EMS)** face critical delays reaching trauma victims during the "Golden Hour" due to uncoordinated traffic signals.
+- **Regional Transport Offices (RTO)** lack instantaneous sync with on-road traffic violations and repeat offender history.
+- **Insurance Agencies** suffer from lengthy claim investigation cycles and manual FIR verification.
+- **Citizens** lack transparent access to view citations, report road hazards, or receive real-time localized advisories.
+
+---
+
+## 💡 The SafeRoad Solution
+
+SafeRoad bridges these gaps by providing an interconnected digital infrastructure where an event in one department immediately activates real-time intelligence for the others.
+
+```
+                  +-----------------------------------+
+                  |          SafeRoad Core            |
+                  +-----------------------------------+
+                   /          |             |        \
+                  /           |             |         \
+        +------------+  +------------+ +------------+ +------------+
+        |   Police   |  | Transport  | | Health/EMS | | Insurance  |
+        | Enforcement|  | (RTO Desk) | | (Trauma)   | | (Claims)   |
+        +------------+  +------------+ +------------+ +------------+
+                   \          |             |         /
+                    \         |             |        /
+                  +-----------------------------------+
+                  |          Citizen Portal           |
+                  +-----------------------------------+
+```
+
+---
+
+## 🏛️ Integrated Department Modules
+
+### 1. 👮 Traffic Police Operations
+- **Live Signal Junction Controller:** Real-time cycle management for major intersections with manual emergency override capabilities.
+- **Emergency Green Corridor Pre-emption:** Clears signal paths for ambulances and first-responders with a single click.
+- **Automated E-Challan Enforcement:** Issues citations based on vehicle type and offense severity.
+- **Digital FIR & Incident Registry:** Instant capture of collision telemetry, severity rankings, road conditions, and dispatched patrol units.
+
+### 2. 🚗 Transport Department (RTO)
+- **Centralized Vehicle Registry:** Instant lookup of vehicle ownership, fitness certification, fuel classification, and registration status.
+- **Dynamic Demerit Points Tracking:** Cumulative point accumulation system to identify high-risk drivers and trigger license suspensions.
+- **Commercial Fleet Compliance:** Automated tracking of commercial vehicle payload limits and permit validity.
+
+### 3. 🚑 Health & Emergency Medical Services (EMS)
+- **Trauma Care Intake Desk:** Real-time triage recording patient vitals, injury classification, and hospital bed allocation.
+- **Active Ambulance Dispatcher:** Live fleet tracking with instant route clearance coordination.
+- **Golden Hour Priority Feed:** Direct ingestion of accident FIR feeds to prepare trauma centers before patient arrival.
+
+### 4. 📋 Insurance Claims & Audit Agency
+- **Digital FIR Audit Integration:** Instant cross-verification of accident records directly from police logs to eliminate fraudulent claims.
+- **Accident Claim Processing:** Automated settlement workflows tied directly to vehicle collision telemetry and repair estimates.
+- **Risk Assessment Portfolio:** High-risk driver profiling based on historical citation data and accident frequency.
+
+### 5. 👥 Citizen Safety & Grievance Portal
+- **Vehicle E-Challan Portal:** Quick citation lookup and digital settlement status for registered vehicle owners.
+- **Road Hazard & Grievance Redressal:** Direct citizen reporting of potholes, non-functional signals, and road safety hazards with tracking tickets.
+- **Live Safety Advisories:** Broadcast feed for real-time weather warnings, detour routes, and traffic congestion alerts.
 
 ---
 
 ## 🏗️ Object-Oriented Architecture (OOP in Java)
 
-SafeRoad demonstrates all core Java Object-Oriented Design Principles:
+SafeRoad is built in pure Java and demonstrates clean object-oriented design principles:
 
 ```
                       +-------------------+
@@ -38,61 +89,22 @@ SafeRoad demonstrates all core Java Object-Oriented Design Principles:
    +----------+  +------------+    +-----------+ +-----------+
 ```
 
-1. **Inheritance (Hierarchical):** Subclasses extend the abstract `Vehicle` class, inheriting common properties while encapsulating vehicle-specific attributes.
-2. **Polymorphism (Dynamic Method Dispatch):** The `calculateFine(String violation)` method is overridden across subclasses to enforce tiered penalties.
-3. **Encapsulation:** State variables across domain models (`Challan`, `AccidentReport`, `TrafficIntersection`, `Complaint`) are protected with strict access control.
-4. **Abstraction:** Service contracts abstract persistence and analytics from the presentation layer.
-
-## 🔑 Demo Login Credentials
-
-| User Type / Department | Username / Plate | Password / Mobile | Target Portal |
-|---|---|---|---|
-| **Common User / Citizen** | `KA-01-AB-1234` | `9876543210` | **Citizen Portal (`/citizen`)** |
-| **Traffic Police Officer** | `officer` | `officer123` | **Police Enforcement (`/police`)** |
-| **Transport Dept (RTO)** | `transport` | `transport123` | **RTO Registry (`/transport`)** |
-| **Health / EMS Dept** | `health` | `health123` | **Trauma Registry (`/health`)** |
-| **Insurance Agency** | `insurance` | `insurance123` | **Claims Audit (`/insurance`)** |
-| **Master Administrator** | `admin` | `admin` | **Central Overview (`/dashboard`)** |
+- **Inheritance (Hierarchical):** Specialized vehicle models (`Car`, `TwoWheeler`, `HeavyVehicle`, `EmergencyVehicle`) inherit foundational attributes from an abstract base `Vehicle` class.
+- **Polymorphism (Dynamic Method Dispatch):** Fine computation logic (`calculateFine(violation)`) is polymorphically overridden across subclasses, applying tiered penalty weights based on vehicle classification.
+- **Encapsulation:** Domain models protect internal state through robust access modifiers and validated getters/setters.
+- **Abstraction:** Business logic, telemetry synthesis, and database operations are segregated across dedicated service layers.
 
 ---
 
-## 🚀 Local Development Setup
+## 🎯 Impact & Key Outcomes
 
-### Prerequisites
-- Java 17 or higher
-- Git
-
-### Running the App
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/ShaunJeffery/SafeRoad.git
-   cd SafeRoad
-   ```
-
-2. Run on Windows:
-   ```cmd
-   run.bat
-   ```
-   *Or on Linux/macOS:*
-   ```bash
-   mvn spring-boot:run
-   ```
-
-3. Open your browser at:
-   👉 **`http://localhost:8080`**
+- ⏱️ **Reduces Emergency Response Time:** Green corridor coordination drastically shortens transit times for ambulances during life-critical medical emergencies.
+- 📉 **Curtails Traffic Violations:** Integrated demerit tracking discourages repeat offenses and promotes accountable driving.
+- 🔍 **Eliminates Bureaucratic Silos:** Multi-department synchronization ensures transparent, tamper-proof incident data across public services.
+- 🤝 **Empowers Citizens:** Direct access to violation history and simplified road hazard reporting enhances public trust and urban safety.
 
 ---
 
-## ☁️ Cloud Deployment (Docker)
-
-Build and run anywhere with Docker:
-```bash
-docker build -t saferoad-app .
-docker run -p 8080:8080 saferoad-app
-```
-
----
-
-## 👥 Contributors & Hackathon Team
+## 👥 Contributors
 - **Project Lead & Developer:** Shaun
 - **Domain:** Smart Governance, Urban Mobility, & Road Safety Analytics
